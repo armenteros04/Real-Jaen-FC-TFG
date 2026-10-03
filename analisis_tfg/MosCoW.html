@@ -1,0 +1,852 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Análisis y Diseño — Plataforma de Análisis de Vídeo Real Jaén CF</h1>
+<blockquote>
+<p>Documento de análisis y diseño software para el TFG. Cubre: historias de usuario, casos de uso, modelo de dominio (clases), arquitectura (componentes y despliegue), comportamiento (secuencia, estados, actividades) y modelo de datos, tomando como base el código de la webapp (<code>index.html</code>) y el diagrama de secuencia del backend aportado (<code>03_secuencia_procesamiento.png</code>).</p>
+</blockquote>
+<h2>Índice</h2>
+<ol>
+<li><a href="#1-alcance-y-actores">Alcance y actores</a></li>
+<li><a href="#2-historias-de-usuario">Historias de usuario</a></li>
+<li><a href="#3-diagrama-de-casos-de-uso">Diagrama de casos de uso</a></li>
+<li><a href="#4-diagrama-de-clases--dominio-del-pipeline-backend">Diagrama de clases — dominio del pipeline (backend)</a></li>
+<li><a href="#5-diagrama-de-clases--webapp-y-modelo-de-resultados">Diagrama de clases — webapp y modelo de resultados</a></li>
+<li><a href="#6-diagrama-de-componentes-arquitectura">Diagrama de componentes (arquitectura)</a></li>
+<li><a href="#7-diagrama-de-despliegue">Diagrama de despliegue</a></li>
+<li><a href="#8-diagramas-de-secuencia-webapp--backend">Diagramas de secuencia (webapp ↔ backend)</a></li>
+<li><a href="#9-diagrama-de-estados-del-pipeline">Diagrama de estados del pipeline</a></li>
+<li><a href="#10-diagrama-de-actividades-del-pipeline">Diagrama de actividades del pipeline</a></li>
+<li><a href="#11-modelo-de-datos-entidadrelaci%C3%B3n-conceptual">Modelo de datos (entidad–relación conceptual)</a></li>
+</ol>
+<hr>
+<h2>1. Alcance y actores</h2>
+<p>El sistema se compone de dos subsistemas que ya están implementados:</p>
+<ul>
+<li><strong>Backend de procesamiento</strong> (<code>main.py</code> + módulos <code>detection</code>, <code>tracking</code>, <code>role_refinement</code>, <code>calibration</code>, <code>analytics</code>, <code>utils.json_exporter</code>): pipeline de visión artificial que, a partir de un vídeo de un partido, genera detecciones, tracking de jugadores/balón, roles de equipo, posiciones de campo homografiadas y analítica final (rendimiento, heatmaps, táctica, posesión).</li>
+<li><strong>Webapp</strong> (<code>index.html</code>): panel de control de un solo cliente (SPA) que permite lanzar el pipeline, monitorizar su ejecución en tiempo real, y explorar los resultados generados (plantilla y fichas de jugador, mapas de calor, análisis táctico, detecciones finales y jornadas de liga con sus clips).</li>
+</ul>
+<p><strong>Actores identificados:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Actor</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Analista / Cuerpo técnico</strong></td>
+<td>Usuario principal de la webapp: lanza análisis de vídeos y explora los resultados (rendimiento, táctica, heatmaps).</td>
+</tr>
+<tr>
+<td><strong>Administrador del sistema</strong></td>
+<td>Perfil técnico que ejecuta el pipeline por CLI (<code>python main.py --video ... --all</code>) y gestiona los ficheros de vídeo/salida.</td>
+</tr>
+<tr>
+<td><strong>Servidor de análisis (server.py)</strong></td>
+<td>Actor sistema: expone la API REST (<code>/api/run</code>, <code>/api/status</code>, <code>/api/results</code>, <code>/api/jornadas/{n}/clips</code>) y orquesta la ejecución del pipeline como proceso.</td>
+</tr>
+<tr>
+<td><strong>Pipeline de vídeo (main.py + módulos)</strong></td>
+<td>Actor sistema: ejecuta detección, tracking, refinamiento de roles, calibración y analítica.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>2. Historias de usuario</h2>
+<p>Formato: <em>Como &lt;rol&gt;, quiero &lt;acción&gt;, para &lt;beneficio&gt;</em>. Prioridad en escala MoSCoW (Must/Should/Could).</p>
+<h3>Épica A — Ejecución y monitorización del pipeline</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-01</td>
+<td>Como analista, quiero indicar el vídeo y las opciones de ejecución (dispositivo, flags) desde la pestaña <em>Pipeline</em>, para lanzar un análisis sin usar la terminal.</td>
+<td>- El formulario permite editar nombre de vídeo y flags.<br>- Se genera y muestra el comando equivalente (<code>python main.py --video ... --all</code>).<br>- El botón &quot;Ejecutar análisis&quot; se deshabilita mientras hay un proceso en curso.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-02</td>
+<td>Como analista, quiero copiar el comando generado, para poder ejecutarlo manualmente por CLI si lo necesito.</td>
+<td>- Botón &quot;Copiar&quot; copia el comando al portapapeles.<br>- Se muestra confirmación visual de copiado.</td>
+<td>Could</td>
+</tr>
+<tr>
+<td>HU-03</td>
+<td>Como analista, quiero ver los logs del pipeline en tiempo real (consola), para saber en qué etapa está el procesamiento y detectar errores.</td>
+<td>- Los logs se actualizan por <em>polling</em> cada 1 s mientras <code>is_running = true</code>.<br>- Las líneas con &quot;Error&quot;/&quot;❌&quot; se resaltan en rojo; las de &quot;✅&quot;/&quot;Iniciando&quot; en color info.<br>- Al finalizar, se detiene el polling y se habilita de nuevo el botón.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-04</td>
+<td>Como analista, quiero que la webapp detecte si el backend está disponible, para saber si puedo lanzar un análisis.</td>
+<td>- Al cargar, se consulta <code>/api/status</code>.<br>- El indicador de estado cambia entre &quot;activo&quot;/&quot;error&quot; según la respuesta.<br>- Si hay un análisis ya en curso al entrar, se reengancha el polling automáticamente.</td>
+<td>Should</td>
+</tr>
+<tr>
+<td>HU-05</td>
+<td>Como analista, quiero limpiar la consola de logs, para empezar a leer desde cero una nueva ejecución.</td>
+<td>- El botón &quot;Limpiar&quot; vacía el área de logs sin afectar al proceso en curso.</td>
+<td>Could</td>
+</tr>
+<tr>
+<td>HU-06</td>
+<td>Como administrador del sistema, quiero ejecutar el pipeline completo por CLI con <code>--all</code>, para procesar un vídeo íntegramente (detección → tracking → roles → calibración → analítica) sin intervención manual.</td>
+<td>- <code>main.py --video &lt;archivo&gt; --all</code> ejecuta las 5 etapas en orden.<br>- Cada etapa persiste su salida en <code>outputs/</code> (<code>detections.json</code>, <code>tracks_swapfixed.json</code>, <code>roles.json</code>, <code>field_positions.json</code>, ficheros de analítica).</td>
+<td>Must</td>
+</tr>
+</tbody>
+</table>
+<h3>Épica B — Plantilla y ficha de jugador</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-07</td>
+<td>Como cuerpo técnico, quiero ver la plantilla del Real Jaén CF agrupada por posición o por dorsal, para localizar rápidamente a un jugador.</td>
+<td>- Toggle &quot;Por posición&quot; / &quot;Por dorsal&quot; reordena la lista sin recargar datos.<br>- Existe filtro/búsqueda sobre la plantilla aplanada.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-08</td>
+<td>Como cuerpo técnico, quiero seleccionar un jugador y ver su ficha de rendimiento, para analizar su implicación en un partido concreto.</td>
+<td>- Al pulsar una tarjeta, se consultan los resultados (<code>/api/results</code>) y se buscan métricas asociadas al jugador.<br>- Se muestra narrativa (valoración /10, impacto, fatiga) y estadísticas numéricas si existen.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-09</td>
+<td>Como cuerpo técnico, quiero ver un gráfico radar (spider-chart) con las métricas normalizadas del jugador (velocidad media/punta, distancia, gestión de fatiga, impacto), para comparar visualmente sus cualidades en el partido.</td>
+<td>- El radar se renderiza con Chart.js a partir de las métricas parseadas.<br>- Los valores se normalizan a escala 0–100.<br>- Si faltan datos, se usan valores por defecto razonables en vez de romper el gráfico.</td>
+<td>Should</td>
+</tr>
+<tr>
+<td>HU-10</td>
+<td>Como cuerpo técnico, quiero volver al listado de plantilla desde la ficha de un jugador, para revisar a otro futbolista sin perder el contexto.</td>
+<td>- Botón &quot;Volver&quot; retorna a la vista de listado manteniendo el filtro/vista activos.</td>
+<td>Could</td>
+</tr>
+</tbody>
+</table>
+<h3>Épica C — Mapas de calor y grafos de pases</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-11</td>
+<td>Como analista, quiero ver los mapas de calor y grafos generados por el pipeline, para entender el posicionamiento y las conexiones entre jugadores.</td>
+<td>- Se listan vídeos e imágenes de <code>outputs/</code> vía <code>/api/results</code>.<br>- Si no hay resultados, se muestra un mensaje vacío explicativo.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-12</td>
+<td>Como analista, quiero filtrar los mapas de calor por jornada, para centrarme en un partido concreto.</td>
+<td>- Selector de jornada filtra la cuadrícula de vídeos/imágenes por el patrón <code>jornadaN</code> del nombre de fichero.<br>- Opción &quot;Ver todas&quot; limpia el filtro.</td>
+<td>Should</td>
+</tr>
+<tr>
+<td>HU-13</td>
+<td>Como analista, quiero refrescar manualmente los resultados, para ver las últimas salidas generadas tras una ejecución reciente.</td>
+<td>- Botón &quot;Actualizar&quot; repite la consulta a <code>/api/results</code> y vuelve a renderizar la cuadrícula.</td>
+<td>Could</td>
+</tr>
+</tbody>
+</table>
+<h3>Épica D — Análisis táctico</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-14</td>
+<td>Como cuerpo técnico, quiero consultar el informe táctico del equipo (posesión, estilo de juego, patrones), para preparar la siguiente sesión de entrenamiento.</td>
+<td>- Se descargan y parsean los ficheros de texto de analítica táctica.<br>- El contenido se estructura en secciones legibles (no texto plano bruto).</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-15</td>
+<td>Como cuerpo técnico, quiero filtrar el análisis táctico por jornada, para comparar el rendimiento colectivo entre partidos.</td>
+<td>- El selector de jornada filtra los informes/():clips tácticos mostrados.</td>
+<td>Should</td>
+</tr>
+</tbody>
+</table>
+<h3>Épica E — Detecciones finales</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-16</td>
+<td>Como analista, quiero ver un resumen agrupado por partido (jornada + gol) de las detecciones finales, narrativa y métricas, para validar la calidad del procesamiento de un vídeo concreto.</td>
+<td>- Las coincidencias de resultados se agrupan por clave <code>jornadaN_golM</code>.<br>- Cada grupo muestra narrativa (con badge de puntuación) y métricas numéricas si existen.</td>
+<td>Should</td>
+</tr>
+</tbody>
+</table>
+<h3>Épica F — Jornadas de liga</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Historia de usuario</th>
+<th>Criterios de aceptación</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HU-17</td>
+<td>Como cuerpo técnico, quiero ver el calendario de jornadas de liga (rival, escudo, estadio, fecha, condición local/visitante y resultado), para tener el contexto competitivo de cada análisis.</td>
+<td>- Se listan las 38 jornadas con sus datos.<br>- El estado del partido (jugado/pendiente) se calcula según si hay goles registrados.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-18</td>
+<td>Como cuerpo técnico, quiero ver cuántos clips de análisis hay disponibles por jornada antes de entrar en el detalle, para saber qué jornadas ya tienen vídeo procesado.</td>
+<td>- Se consulta <code>/api/jornadas/{numero}/clips</code> para cada jornada en paralelo al cargar la vista.<br>- El contador se muestra en la tarjeta de la jornada.</td>
+<td>Should</td>
+</tr>
+<tr>
+<td>HU-19</td>
+<td>Como cuerpo técnico, quiero abrir el detalle de una jornada y reproducir sus clips analizados, para revisar las jugadas concretas de ese partido.</td>
+<td>- Al abrir una jornada se cargan sus clips vía <code>/api/jornadas/{numero}/clips</code>.<br>- Los clips se muestran en un carrusel/lista navegable con reproducción de vídeo.</td>
+<td>Must</td>
+</tr>
+<tr>
+<td>HU-20</td>
+<td>Como cuerpo técnico, quiero filtrar las jornadas (por ejemplo local/visitante o jugadas/pendientes), para encontrar rápidamente el partido que busco.</td>
+<td>- Filtros aplican sobre el listado de 38 jornadas sin recargar la página.<br>- &quot;Ver todas&quot; limpia los filtros aplicados.</td>
+<td>Could</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>3. Diagrama de casos de uso</h2>
+<pre class="mermaid">flowchart LR
+    Analista([&#34;👤 Analista / Cuerpo técnico&#34;])
+    Admin([&#34;👤 Administrador del sistema&#34;])
+
+    subgraph SIS[&#34;Plataforma de análisis de vídeo — Real Jaén CF&#34;]
+        UC1([&#34;Configurar y lanzar análisis de vídeo&#34;])
+        UC2([&#34;Monitorizar ejecución del pipeline&#34;])
+        UC3([&#34;Consultar plantilla del equipo&#34;])
+        UC4([&#34;Ver ficha de rendimiento de jugador&#34;])
+        UC5([&#34;Ver mapas de calor y grafos&#34;])
+        UC6([&#34;Ver análisis táctico del equipo&#34;])
+        UC7([&#34;Ver detecciones finales por partido&#34;])
+        UC8([&#34;Consultar jornadas de liga&#34;])
+        UC9([&#34;Ver clips de una jornada&#34;])
+        UC10([&#34;Filtrar resultados por jornada&#34;])
+        UC11([&#34;Ejecutar pipeline por CLI&#34;])
+    end
+
+    Analista --&gt; UC1
+    Analista --&gt; UC2
+    Analista --&gt; UC3
+    Analista --&gt; UC4
+    Analista --&gt; UC5
+    Analista --&gt; UC6
+    Analista --&gt; UC7
+    Analista --&gt; UC8
+    Analista --&gt; UC9
+    Analista --&gt; UC10
+    Admin --&gt; UC11
+
+    UC1 -. incluye .-&gt; UC2
+    UC8 -. incluye .-&gt; UC9
+    UC5 -. extiende .-&gt; UC10
+    UC6 -. extiende .-&gt; UC10
+</pre>
+<hr>
+<h2>4. Diagrama de clases — dominio del pipeline (backend)</h2>
+<p>Basado en el diagrama de secuencia aportado (<code>main.py</code> orquestando <code>detection</code>, <code>tracking</code>, <code>role_refinement</code>, <code>calibration</code>, <code>analytics</code> y <code>utils.json_exporter</code>).</p>
+<pre class="mermaid">classDiagram
+    class PipelineOrchestrator {
+        -string videoPath
+        -string device
+        -bool runAll
+        +procesar() void
+        +ejecutarEtapa(nombre) void
+        +guardarResultado(etapa, datos) void
+    }
+
+    class DetectionModule {
+        +procesar(video) List~Detection~
+    }
+
+    class TrackingModule {
+        +track(detections) List~Track~
+        -stitching() void
+        -swapCorrection() void
+    }
+
+    class RoleRefinementModule {
+        +refinarRoles(tracks, crops) List~RoleResult~
+        -clusteringEquipos() void
+        -votacionTemporal() void
+    }
+
+    class CalibrationModule {
+        +calibrar(frame) List~FieldPosition~
+        -detectarKeypoints() void
+        -homografia() void
+        -suavizarConMovimientoCamara() void
+    }
+
+    class AnalyticsModule {
+        +analizar(fieldPositions, roles) AnalyticsResult
+        -calcularVelocidadDistancia() void
+        -calcularRendimiento() void
+        -generarHeatmaps() void
+        -analizarTactica() void
+        -calcularPosesion() void
+        -generarInformeFinal() void
+    }
+
+    class JsonExporter {
+        +guardar(nombreFichero, datos) void
+    }
+
+    class Detection {
+        +int frameId
+        +BBox bbox
+        +string clase
+        +float confianza
+    }
+
+    class Track {
+        +int trackId
+        +string clase
+        +List~BBox~ historico
+    }
+
+    class RoleResult {
+        +int trackId
+        +string equipo
+        +string rol
+    }
+
+    class FieldPosition {
+        +int trackId
+        +int frameId
+        +float x
+        +float y
+    }
+
+    class AnalyticsResult {
+        +List~PlayerMetrics~ metricas
+        +List~Heatmap~ heatmaps
+        +TacticalReport tactica
+        +PossessionStats posesion
+    }
+
+    class PlayerMetrics {
+        +int trackId
+        +float distanciaTotal
+        +float velocidadMedia
+        +float velocidadMaxima
+        +string nivelFatiga
+        +string nivelImpacto
+        +float valoracion
+    }
+
+    PipelineOrchestrator --&gt; DetectionModule
+    PipelineOrchestrator --&gt; TrackingModule
+    PipelineOrchestrator --&gt; RoleRefinementModule
+    PipelineOrchestrator --&gt; CalibrationModule
+    PipelineOrchestrator --&gt; AnalyticsModule
+    PipelineOrchestrator --&gt; JsonExporter
+
+    DetectionModule ..&gt; Detection : produce
+    TrackingModule ..&gt; Track : produce
+    RoleRefinementModule ..&gt; RoleResult : produce
+    CalibrationModule ..&gt; FieldPosition : produce
+    AnalyticsModule ..&gt; AnalyticsResult : produce
+    AnalyticsResult &#34;1&#34; *-- &#34;many&#34; PlayerMetrics
+    TrackingModule --&gt; DetectionModule : usa salida de
+    RoleRefinementModule --&gt; TrackingModule : usa salida de
+    CalibrationModule --&gt; TrackingModule : usa salida de
+    AnalyticsModule --&gt; CalibrationModule : usa salida de
+    AnalyticsModule --&gt; RoleRefinementModule : usa salida de
+</pre>
+<hr>
+<h2>5. Diagrama de clases — webapp y modelo de resultados</h2>
+<p>Modelo lógico de los módulos JavaScript de <code>index.html</code> (aunque el código está escrito de forma funcional, aquí se representa como módulos/controladores con responsabilidad única, útil para el diseño y una futura refactorización a componentes).</p>
+<pre class="mermaid">classDiagram
+    class ApiClient {
+        -string API_BASE
+        +getStatus() Status
+        +postRun(video, device) RunResponse
+        +getResults() ResultsResponse
+        +getJornadaClips(numero) ClipsResponse
+    }
+
+    class AppController {
+        -string activeTab
+        +switchTab(tabId) void
+    }
+
+    class PipelineView {
+        -bool isRunning
+        -interval pollInterval
+        +updateCmd() void
+        +startAnalysis() void
+        +startPolling() void
+        +checkBackendStatus() void
+        +appendLog(msg, tipo) void
+        +clearLogs() void
+    }
+
+    class SquadView {
+        -string squadViewMode
+        +buildFlatSquad() List~Player~
+        +setSquadView(view) void
+        +applySquadFilter() void
+        +showSquadList() void
+        +selectPlayer(nombre, dorsal, posicion) void
+    }
+
+    class PlayerReportView {
+        +parseNarrativeLine(line) Narrative
+        +parseMetricsLine(line) Metrics
+        +renderPlayerRadarChart(metricsData) void
+    }
+
+    class HeatmapsView {
+        +loadHeatmaps() void
+        +populateJornadaFilter() void
+        +applyJornadaFilter() void
+        +clearJornadaFilter() void
+    }
+
+    class TacticalView {
+        +loadTacticalAnalysis() void
+        +parseTeamTacticalText(text) TacticalSections
+        +applyTacticalJornadaFilter() void
+        +renderTacticalClips(clips) void
+    }
+
+    class DetectionsView {
+        +loadDetections() void
+        +getDetectionKey(filename) string
+        +groupMatchesByDetection(matches) List~DetectionGroup~
+        +renderDetectionCard(group) void
+    }
+
+    class JornadasView {
+        -Jornada[] JORNADAS_DATA
+        +loadJornadas() void
+        +renderJornadasGrid() void
+        +openJornada(numero) void
+        +closeJornadaDetail() void
+        +loadClipsForJornada(numero) void
+        +applyJornadasFilters() void
+        +matchState(jornada) string
+    }
+
+    class Player {
+        +string nombre
+        +int dorsal
+        +string posicion
+    }
+
+    class Jornada {
+        +int numero
+        +string rival
+        +string escudoRival
+        +string estadio
+        +string fecha
+        +string campo
+        +int golesJaen
+        +int golesRival
+    }
+
+    class Clip {
+        +string path
+        +string jornada
+    }
+
+    AppController --&gt; PipelineView
+    AppController --&gt; SquadView
+    AppController --&gt; HeatmapsView
+    AppController --&gt; TacticalView
+    AppController --&gt; DetectionsView
+    AppController --&gt; JornadasView
+
+    PipelineView --&gt; ApiClient
+    SquadView --&gt; ApiClient
+    SquadView --&gt; PlayerReportView
+    HeatmapsView --&gt; ApiClient
+    TacticalView --&gt; ApiClient
+    DetectionsView --&gt; ApiClient
+    JornadasView --&gt; ApiClient
+
+    SquadView &#34;1&#34; o-- &#34;many&#34; Player
+    JornadasView &#34;1&#34; o-- &#34;many&#34; Jornada
+    JornadasView &#34;1&#34; o-- &#34;many&#34; Clip
+    Jornada &#34;1&#34; o-- &#34;many&#34; Clip
+</pre>
+<hr>
+<h2>6. Diagrama de componentes (arquitectura)</h2>
+<pre class="mermaid">flowchart TB
+    subgraph CLIENTE[&#34;Cliente (navegador)&#34;]
+        WEBAPP[&#34;Webapp SPA\n(index.html: HTML + CSS + JS + Chart.js)&#34;]
+    end
+
+    subgraph SERVIDOR[&#34;Servidor local&#34;]
+        API[&#34;server.py\nAPI REST\n(/api/run, /api/status, /api/results, /api/jornadas/&amp;#123;n&amp;#125;/clips)&#34;]
+        ORQ[&#34;main.py\nOrquestador del pipeline&#34;]
+        DET[&#34;detection&#34;]
+        TRK[&#34;tracking\n(BoT-SORT + Ball)&#34;]
+        ROL[&#34;role_refinement&#34;]
+        CAL[&#34;calibration\n(keypoints + homografía)&#34;]
+        ANA[&#34;analytics&#34;]
+        UTL[&#34;utils.json_exporter&#34;]
+    end
+
+    subgraph ALMACEN[&#34;Almacenamiento de ficheros&#34;]
+        VID[(&#34;videos/ (.mp4)&#34;)]
+        OUT[(&#34;outputs/ (*.json, *.txt, vídeos, imágenes)&#34;)]
+        FOT[(&#34;fotos/ (escudos, plantilla)&#34;)]
+    end
+
+    WEBAPP -- &#34;fetch HTTP/JSON&#34; --&gt; API
+    API -- &#34;subprocess: python main.py --video ... --all&#34; --&gt; ORQ
+    ORQ --&gt; DET --&gt; TRK --&gt; ROL
+    TRK --&gt; CAL --&gt; ANA
+    ROL --&gt; ANA
+    ORQ --&gt; UTL
+    UTL --&gt; OUT
+    ORQ -- lee --&gt; VID
+    API -- lista/sirve --&gt; OUT
+    WEBAPP -- &#34;carga estáticos&#34; --&gt; FOT
+</pre>
+<hr>
+<h2>7. Diagrama de despliegue</h2>
+<pre class="mermaid">flowchart LR
+    subgraph NODO_CLIENTE[&#34;Nodo: Equipo del analista&#34;]
+        NAV[&#34;«device»\nNavegador web&#34;]
+        ART_WEB[&#34;«artifact»\nindex.html&#34;]
+        NAV --- ART_WEB
+    end
+
+    subgraph NODO_SERVIDOR[&#34;Nodo: Servidor local / estación de trabajo (GPU)&#34;]
+        RT[&#34;«execution environment»\nPython + servidor HTTP (server.py)&#34;]
+        ART_API[&#34;«artifact»\nserver.py&#34;]
+        ART_PIPE[&#34;«artifact»\nmain.py + módulos del pipeline&#34;]
+        GPU[&#34;«device»\nGPU (CUDA) — inferencia YOLO / tracking&#34;]
+        FS[&#34;«artifact»\nSistema de ficheros\nvideos/ · outputs/ · fotos/&#34;]
+        RT --- ART_API
+        RT --- ART_PIPE
+        ART_PIPE --- GPU
+        ART_API --- FS
+        ART_PIPE --- FS
+    end
+
+    NAV -- &#34;HTTP/JSON (localhost)&#34; --&gt; RT
+</pre>
+<hr>
+<h2>8. Diagramas de secuencia (webapp ↔ backend)</h2>
+<h3>8.1 Lanzar y monitorizar un análisis desde la webapp</h3>
+<pre class="mermaid">sequenceDiagram
+    actor Analista
+    participant Webapp as Webapp (PipelineView)
+    participant API as server.py (API REST)
+    participant Main as main.py (Orquestador)
+
+    Analista-&gt;&gt;Webapp: Introduce vídeo/flags y pulsa &#34;Ejecutar análisis&#34;
+    Webapp-&gt;&gt;API: POST /api/run?video=...&amp;device=...
+    API-&gt;&gt;Main: lanza subprocess &#34;python main.py --video ... --all&#34;
+    API--&gt;&gt;Webapp: 200 OK {message, command}
+    Webapp-&gt;&gt;Webapp: startPolling() cada 1s
+
+    loop mientras is_running = true
+        Webapp-&gt;&gt;API: GET /api/status
+        API--&gt;&gt;Webapp: {is_running, logs[]}
+        Webapp-&gt;&gt;Webapp: renderiza logs en consola
+    end
+
+    Main--&gt;&gt;API: proceso finalizado (código de salida)
+    Webapp-&gt;&gt;API: GET /api/status
+    API--&gt;&gt;Webapp: {is_running: false, logs[]}
+    Webapp-&gt;&gt;Analista: &#34;Análisis finalizado&#34; + botón habilitado
+</pre>
+<h3>8.2 Consultar la ficha de rendimiento de un jugador</h3>
+<pre class="mermaid">sequenceDiagram
+    actor Analista
+    participant Webapp as Webapp (SquadView)
+    participant API as server.py
+    participant Chart as Chart.js (Radar)
+
+    Analista-&gt;&gt;Webapp: Selecciona jugador en la plantilla
+    Webapp-&gt;&gt;API: GET /api/results
+    API--&gt;&gt;Webapp: lista de ficheros/resultados disponibles
+    Webapp-&gt;&gt;API: GET /outputs/{fichero relacionado}
+    API--&gt;&gt;Webapp: contenido de texto (narrativa + métricas)
+    Webapp-&gt;&gt;Webapp: parseNarrativeLine() / parseMetricsLine()
+    Webapp-&gt;&gt;Chart: renderPlayerRadarChart(metricsData)
+    Chart--&gt;&gt;Webapp: gráfico radar renderizado
+    Webapp--&gt;&gt;Analista: ficha de jugador (valoración, impacto, fatiga, radar)
+</pre>
+<h3>8.3 Consultar jornadas y reproducir clips</h3>
+<pre class="mermaid">sequenceDiagram
+    actor Analista
+    participant Webapp as Webapp (JornadasView)
+    participant API as server.py
+
+    Analista-&gt;&gt;Webapp: Abre pestaña &#34;Jornadas&#34;
+    par por cada una de las 38 jornadas
+        Webapp-&gt;&gt;API: GET /api/jornadas/{numero}/clips
+        API--&gt;&gt;Webapp: {clips: [...]}
+    end
+    Webapp-&gt;&gt;Webapp: renderJornadasGrid() con nº de clips por jornada
+    Analista-&gt;&gt;Webapp: Abre una jornada concreta
+    Webapp-&gt;&gt;API: GET /api/jornadas/{numero}/clips
+    API--&gt;&gt;Webapp: {clips: [...]}
+    Webapp--&gt;&gt;Analista: detalle de jornada con clips reproducibles
+</pre>
+<hr>
+<h2>9. Diagrama de estados del pipeline</h2>
+<p>Estado gestionado por <code>server.py</code> y reflejado en la webapp a través de <code>is_running</code>.</p>
+<pre class="mermaid">stateDiagram-v2
+    [*] --&gt; Inactivo
+    Inactivo --&gt; Solicitado : POST /api/run(video, device)
+    Solicitado --&gt; Ejecutando : subprocess iniciado\n(main.py --video ... --all)
+    Solicitado --&gt; Inactivo : error al lanzar\n(vídeo no encontrado / backend caído)
+
+    state Ejecutando {
+        [*] --&gt; Deteccion
+        Deteccion --&gt; Tracking
+        Tracking --&gt; RefinamientoRoles
+        RefinamientoRoles --&gt; Calibracion
+        Calibracion --&gt; Analitica
+        Analitica --&gt; [*]
+    }
+
+    Ejecutando --&gt; Finalizado : proceso termina (exit 0)
+    Ejecutando --&gt; Error : proceso termina con error
+    Finalizado --&gt; Inactivo : GET /api/status confirma is_running=false
+    Error --&gt; Inactivo : usuario revisa logs y reintenta
+</pre>
+<hr>
+<h2>10. Diagrama de actividades del pipeline</h2>
+<pre class="mermaid">flowchart TD
+    A([Inicio]) --&gt; B[&#34;Usuario indica vídeo y flags\n(--all o etapas concretas)&#34;]
+    B --&gt; C{&#34;¿Backend disponible?&#34;}
+    C -- No --&gt; C1[&#34;Mostrar error de conexión&#34;] --&gt; Z([Fin])
+    C -- Sí --&gt; D[&#34;POST /api/run&#34;]
+    D --&gt; E[&#34;Detección de personas/balón por frame&#34;]
+    E --&gt; F[&#34;Guardar detections.json&#34;]
+    F --&gt; G[&#34;Tracking (BoT-SORT) + stitching + corrección de swaps&#34;]
+    G --&gt; H[&#34;Guardar tracks_swapfixed.json&#34;]
+    H --&gt; I[&#34;Refinamiento de roles: clustering de equipos + votación temporal&#34;]
+    I --&gt; J[&#34;Guardar roles.json&#34;]
+    J --&gt; K[&#34;Calibración: keypoints → homografía + suavizado con movimiento de cámara&#34;]
+    K --&gt; L[&#34;Guardar field_positions.json&#34;]
+    L --&gt; M[&#34;Analítica: velocidad/distancia, heatmaps, táctica, posesión, informe final&#34;]
+    M --&gt; N[&#34;Guardar *.json / *.txt en outputs/&#34;]
+    N --&gt; O{&#34;¿Se solicitó --all?&#34;}
+    O -- Sí --&gt; P[&#34;Pipeline completo ejecutado&#34;]
+    O -- No --&gt; Q[&#34;Solo se ejecutan las etapas indicadas por flags&#34;]
+    P --&gt; R[&#34;Webapp detecta is_running=false&#34;]
+    Q --&gt; R
+    R --&gt; S[&#34;Usuario explora resultados en la webapp\n(plantilla, heatmaps, táctica, jornadas)&#34;]
+    S --&gt; Z
+</pre>
+<hr>
+<h2>11. Modelo de datos (entidad–relación conceptual)</h2>
+<p>Modelo conceptual de las salidas JSON/TXT del pipeline y de los datos estáticos de la webapp (plantilla, calendario de jornadas), tal como se consumen desde <code>index.html</code>.</p>
+<pre class="mermaid">erDiagram
+    JORNADA ||--o{ CLIP : contiene
+    JORNADA {
+        int numero PK
+        string rival
+        string escudo_rival
+        string estadio
+        date fecha
+        string campo &#34;local | visitante&#34;
+        int goles_jaen
+        int goles_rival
+    }
+
+    CLIP {
+        string path PK
+        string jornada FK
+        string tipo &#34;video | imagen&#34;
+    }
+
+    CLIP ||--o{ DETECTION : genera
+    CLIP ||--o{ TRACK : genera
+    CLIP ||--o{ FIELD_POSITION : genera
+    CLIP ||--|| MATCH_ANALYTICS : genera
+
+    DETECTION {
+        int frame_id
+        string clase
+        float confianza
+        json bbox
+    }
+
+    TRACK {
+        int track_id PK
+        string clase
+    }
+
+    TRACK ||--o| ROLE_RESULT : tiene
+    ROLE_RESULT {
+        int track_id FK
+        string equipo
+        string rol
+    }
+
+    TRACK ||--o{ FIELD_POSITION : posiciona
+    FIELD_POSITION {
+        int track_id FK
+        int frame_id
+        float x_metros
+        float y_metros
+    }
+
+    MATCH_ANALYTICS ||--o{ PLAYER_METRICS : incluye
+    MATCH_ANALYTICS {
+        string clip_id PK
+        string informe_tactico
+        string estadisticas_posesion
+    }
+
+    PLAYER_METRICS {
+        int track_id FK
+        float distancia_total
+        float velocidad_media
+        float velocidad_maxima
+        string nivel_fatiga
+        string nivel_impacto
+        float valoracion
+    }
+
+    PLAYER ||--o| PLAYER_METRICS : &#34;se identifica con (por nombre/dorsal)&#34;
+    PLAYER {
+        string nombre PK
+        int dorsal
+        string posicion
+    }
+</pre>
+<hr>
+<h3>Notas finales</h3>
+<ul>
+<li>Los diagramas de clases (secciones 4 y 5) son un <strong>modelo lógico de diseño</strong>: el backend real puede implementar estas responsabilidades como funciones/módulos en vez de clases estrictas, y el frontend está escrito en JavaScript funcional; el diagrama sirve como documentación de responsabilidades y como guía si se decide modularizar el código en clases/componentes.</li>
+<li>La relación <code>PLAYER ||--o| PLAYER_METRICS</code> se marca como conceptual porque, según el código de <code>index.html</code>, la asociación jugador↔métricas se resuelve actualmente por coincidencia de texto (nombre/dorsal) sobre los ficheros de resultados, no por una clave explícita en el JSON.</li>
+<li>Todos los diagramas están en sintaxis Mermaid para poder exportarse o regenerarse fácilmente en la memoria del TFG.</li>
+</ul>
+
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+</body></html>
