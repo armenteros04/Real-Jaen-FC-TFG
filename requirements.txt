@@ -1,0 +1,9 @@
+ultralytics>=8.3.0
+opencv-python>=4.9.0
+numpy>=1.26.0
+PyYAML>=6.0
+pytest>=8.0.0
+# Optional: only needed for the Phase 3.5 manual-correction UI
+# (`streamlit run manual_correction/correction_ui.py`). The core
+# pipeline and all tests run without it.
+streamlit>=1.30.0

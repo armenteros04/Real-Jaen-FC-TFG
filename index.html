@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Jaén CF - TFG</title>
+  <link rel="icon" type="image/png" href="/fotos/escudo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Chart.js para el Spider-Chart / Radar -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="crest" src="fotos/escudo.png" alt="Escudo Real Jaén CF">
+      <div class="brand-text">
+        <h1>Real Jaén <em>CF</em></h1>
+        <p>TFG - Antonio Armenteros </p>
+      </div>
+    </div>
+
+    <div class="side-section-label">Navegación</div>
+    <nav class="side-nav">
+      <button class="tab-btn active" data-tab="tab-dashboard" onclick="switchTab('tab-dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Panel principal
+      </button>
+      <button class="tab-btn" data-tab="tab-pipeline" onclick="switchTab('tab-pipeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Ejecución y análisis
+      </button>
+      <button class="tab-btn" data-tab="tab-analytics" onclick="switchTab('tab-analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Plantilla y estadísticas
+      </button>
+      <button class="tab-btn" data-tab="tab-heatmaps" onclick="switchTab('tab-heatmaps')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Mapas de calor y grafos
+      </button>
+      <button class="tab-btn" data-tab="tab-tactical" onclick="switchTab('tab-tactical')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.2"/></svg>
+        Estudio estratégico
+      </button>
+      <button class="tab-btn" data-tab="tab-detections" onclick="switchTab('tab-detections')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        Detecciones finales
+      </button>
+      <button class="tab-btn" data-tab="tab-jornadas" onclick="switchTab('tab-jornadas')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Jornadas de liga
+      </button>
+    </nav>
+
+    <div class="side-widgets">
+
+      <div class="side-card">
+        <div class="side-progress-label">
+          <span>Progreso de temporada</span>
+          <strong id="qs-progreso-pct">–</strong>
+        </div>
+        <div class="side-progress-track">
+          <div id="qs-progreso-fill" class="side-progress-fill"></div>
+        </div>
+      </div>
+
+      <div id="side-next-match" class="side-card" style="display:none;">
+        <div class="side-card-label">Próximo partido</div>
+        <div class="side-card-body">
+          <div id="qs-next-crest" class="side-crest"><span>–</span></div>
+          <div class="side-card-info">
+            <div id="qs-next-rival" class="side-card-title">–</div>
+            <div class="side-card-meta">
+              <span id="qs-next-venue" class="side-tag"></span>
+              <span id="qs-next-fecha"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="side-last-match" class="side-card" style="display:none;">
+        <div class="side-card-label">Último resultado</div>
+        <div class="side-card-body">
+          <div id="qs-last-crest" class="side-crest"><span>–</span></div>
+          <div class="side-card-info">
+            <div id="qs-last-rival" class="side-card-title">–</div>
+            <div class="side-card-meta">
+              <span id="qs-last-result" class="side-tag"></span>
+            </div>
+          </div>
+          <div id="qs-last-score" class="side-score">–</div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <div class="side-stat-row">
+          <div class="side-stat-icon" style="background: transparent; color: #fff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="side-stat-text">
+            <strong id="qs-partidos">–</strong>
+            <span>Partidos jugados</span>
+          </div>
+        </div>
+        <div class="side-stat-row">
+          <div class="side-stat-icon" style="background: transparent; color: #fff;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="side-stat-text">
+            <strong id="qs-jugadores">–</strong>
+            <span>En plantilla</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <div class="status-line">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-text">Conectando a backend…</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="main-inner">
+
+      <!-- ==================== TAB 0: DASHBOARD ==================== -->
+      <div id="tab-dashboard" class="tab-content active">
+
+        <div class="dashboard-hero">
+          <img class="dashboard-hero-crest" src="fotos/escudo.png" alt="">
+          <span class="dashboard-eyebrow">Real Jaén CF · Trabajo Fin de Grado</span>
+          <h2>Plataforma de análisis de vídeo</h2>
+          <p>Selecciona una sección para empezar a trabajar</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <button class="dashboard-card" onclick="switchTab('tab-jornadas')">
+            <div class="dashboard-card-icon icon-jornadas">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Jornadas de liga</h3>
+              <p>Rival, resultado, estadio y clips sin analizar de cada partido.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <button class="dashboard-card" onclick="switchTab('tab-analytics')">
+            <div class="dashboard-card-icon icon-squad">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Plantilla y estadísticas</h3>
+              <p>Plantilla, informe de rendimiento y gráfico de radar para cada jugador.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <button class="dashboard-card" onclick="switchTab('tab-heatmaps')">
+            <div class="dashboard-card-icon icon-heatmap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Mapas de calor y grafos</h3>
+              <p>Imagenes generadas por el pipeline.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <button class="dashboard-card" onclick="switchTab('tab-tactical')">
+            <div class="dashboard-card-icon icon-tactical">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.2"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Estudio estratégico</h3>
+              <p>Compacidad, forma, zona de ataque y estilo de cada equipo.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <button class="dashboard-card" onclick="switchTab('tab-pipeline')">
+            <div class="dashboard-card-icon icon-pipeline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Ejecución y análisis</h3>
+              <p>Configuración de parámetros para analizar clips.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+
+          <button class="dashboard-card" onclick="switchTab('tab-detections')">
+            <div class="dashboard-card-icon icon-detections">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            </div>
+            <div class="dashboard-card-body">
+              <h3>Detecciones finales</h3>
+              <p>Video final tras la corrección manual.</p>
+            </div>
+            <svg class="dashboard-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <div class="detections-carousel-section">
+          <div class="detections-carousel-heading">
+            <div>
+              <h3>Ejemplos de detecciones</h3>
+              <p>Capturas representativas generadas por el análisis sobre los vídeos analizados</p>
+            </div>
+          </div>
+
+          <div class="carousel" id="detections-carousel">
+            <div class="carousel-viewport">
+              <span class="carousel-counter" id="carousel-counter"></span>
+              <div class="carousel-track" id="carousel-track"></div>
+              <button class="carousel-arrow prev" onclick="carouselMove(-1)" aria-label="Foto anterior" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button class="carousel-arrow next" onclick="carouselMove(1)" aria-label="Foto siguiente" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+            <div class="carousel-dots" id="carousel-dots"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 1: PIPELINE ==================== -->
+      <div id="tab-pipeline" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+        <div class="page-head">
+          <div>
+            <h2>Ejecución y análisis</h2>
+            <p>Configura y lanza el análisis de vídeo sobre el backend local</p>
+          </div>
+        </div>
+        <div class="pipeline-grid">
+
+          <div class="panel">
+            <div class="panel-title">Configuración del análisis</div>
+
+            <div class="field">
+              <label for="input-video">Vídeo a analizar</label>
+              <select id="input-video" onchange="updateAnalysisTargetPreview()">
+                <option value="">Cargando vídeos disponibles…</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="input-device">Dispositivo de cómputo</label>
+              <select id="input-device" onchange="updateAnalysisTargetPreview()">
+                <option value="cuda:0" selected>GPU 0 (recomendado)</option>
+                <option value="cpu">CPU (más lento)</option>
+              </select>
+            </div>
+
+            <button id="btn-run" class="btn-run" onclick="startAnalysis()" disabled>Ejecutar análisis</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Estado del análisis</div>
+
+            <div class="pipeline-stepper" id="pipeline-stepper"></div>
+
+            <div class="pipeline-target" id="pipeline-target"></div>
+
+            <div class="pipeline-current-msg" id="pipeline-current-msg">
+              <span class="pipeline-spinner"></span>
+              <span id="pipeline-current-msg-text">Elige un vídeo y pulsa «Ejecutar análisis» para empezar.</span>
+            </div>
+
+            <div class="pipeline-results" id="pipeline-results" aria-live="polite">
+              <div class="pipeline-results-head">
+                <span class="pipeline-results-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <div>
+                  <h3 id="pipeline-results-title">Resultados listos</h3>
+                  <p>¿Qué quieres consultar primero?</p>
+                </div>
+              </div>
+              <div class="pipeline-results-grid">
+                <button type="button" class="result-tile" onclick="goToResults('heatmaps')">
+                  <span class="result-tile-ico heat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+                  <span class="result-tile-txt"><strong>Mapas de calor y grafos</strong><span>Dónde jugó cada equipo y el jugador destacado</span></span>
+                  <svg class="result-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" class="result-tile" onclick="goToResults('tactical')">
+                  <span class="result-tile-ico tact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3.2"/></svg></span>
+                  <span class="result-tile-txt"><strong>Estudio estratégico</strong><span>Métricas tácticas de ambos equipos</span></span>
+                  <svg class="result-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" class="result-tile" onclick="goToResults('detections')">
+                  <span class="result-tile-ico det"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+                  <span class="result-tile-txt"><strong>Vídeos de detecciones</strong><span>Reproduce el vídeo final con el minimapa</span></span>
+                  <svg class="result-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" class="result-tile" onclick="goToResults('jornada')">
+                  <span class="result-tile-ico jor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+                  <span class="result-tile-txt"><strong>Ficha de la jornada</strong><span>Partido, rival y todos los clips</span></span>
+                  <svg class="result-tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="terminal-wrap collapsed" id="terminal-wrap">
+              <div class="terminal-wrap-head">
+                <span>Consola de ejecución en tiempo real</span>
+                <button class="link-btn" onclick="clearLogs()">Limpiar</button>
+              </div>
+              <div id="terminal" class="terminal">
+                <p class="info">[SISTEMA] Listo para iniciar el pipeline…</p>
+              </div>
+            </div>
+
+            <button class="link-btn" id="terminal-toggle-btn" style="margin-top:12px;" onclick="toggleTerminal()">Ver terminal</button>
+          </div>
+
+        </div>
+
+        <!-- Corrección manual de roles: sustituye a la ventana emergente de Tkinter.
+         Se muestra automáticamente cuando el pipeline (main.py) está esperando
+         una revisión, y se oculta al finalizarla. -->
+        <div class="panel correction-panel" id="correction-panel">
+          <div class="panel-title">
+            Corrección manual
+            <span class="hint" id="correction-hint">Revisión de roles pendiente</span>
+          </div>
+
+          <div class="correction-banner">
+            <div>
+              <strong id="correction-banner-title">Hay tracks pendientes de revisar</strong>
+              <p>Corrige el rol/equipo de cada track y pulsa «Guardar». Cuando termines, pulsa «Finalizar revisión» para que el análisis continúe.</p>
+            </div>
+          </div>
+
+          <div class="team-legend-row" id="correction-team-legend"></div>
+          <div class="team-names-box" id="correction-team-names"></div>
+
+          <div class="correction-toolbar">
+            <div class="field correction-filter" style="margin-bottom:0;">
+              <select id="correction-filter" onchange="renderCorrectionCandidates()">
+                <option value="all">Todos</option>
+                <option value="unknown">Desconocidos</option>
+                <option value="low_confidence">Baja confianza</option>
+                <option value="uncorrected">Sin corregir</option>
+                <option value="id_switch">Cambio de ID</option>
+              </select>
+            </div>
+            <div class="correction-summary" id="correction-summary"></div>
+          </div>
+
+          <div class="correction-grid" id="correction-grid"></div>
+
+          <div class="correction-actions">
+            <button class="btn-skip-review" onclick="finishCorrectionReview('skip')">Omitir revisión (usar roles automáticos)</button>
+            <button class="btn-finish-review" onclick="finishCorrectionReview('submit')">Finalizar revisión</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 2: PLANTILLA ==================== -->
+      <div id="tab-analytics" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+        <div class="page-head">
+          <div>
+            <h2>Plantilla y estadísticas</h2>
+            <p>Rendimiento individual del jugador analizado</p>
+          </div>
+        </div>
+
+        <!-- VISTA 1: LISTADO DE PLANTILLA -->
+        <div id="squad-list-view">
+          <div class="panel">
+            <div class="squad-header has-filters">
+              <div>
+                <h2>Plantilla del Real Jaén CF</h2>
+                <p>Selecciona un jugador para ver su ficha completa</p>
+              </div>
+
+              <div class="squad-header-filters">
+                <div class="header-filter">
+                  <label>Ordenar</label>
+                  <div class="view-toggle">
+                    <button class="view-btn active" data-view="position" onclick="setSquadView('position')">Por posición</button>
+                    <button class="view-btn" data-view="dorsal" onclick="setSquadView('dorsal')">Por dorsal</button>
+                  </div>
+                </div>
+                <div class="header-filter">
+                  <label for="position-filter">Filtrar</label>
+                  <select id="position-filter" onchange="applySquadFilter()">
+                    <option value="all">Todas las posiciones</option>
+                    <option value="Portero">Porteros</option>
+                    <option value="Defensa">Defensas</option>
+                    <option value="Centrocampista">Centrocampistas</option>
+                    <option value="Delantero">Delanteros</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="squad-grouped">
+
+              <!-- PORTEROS -->
+              <div class="position-block" data-position-group="Portero">
+                <div class="position-head"><h3>Porteros</h3><div class="rule"></div><span class="count">3 jugadores</span></div>
+                <div class="squad-grid">
+                  <div class="player-card" data-name="Salvi Carrasco" data-number="13" data-position="Portero" onclick="selectPlayer('Salvi Carrasco', '13', 'Portero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/salvi13.jpg" alt="Salvi Carrasco" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>SC</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Salvi Carrasco</span><span class="jersey-num">13</span></div>
+                  </div>
+                  <div class="player-card" data-name="Morillas" data-number="1" data-position="Portero" onclick="selectPlayer('Morillas', '1', 'Portero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/morillas1.jpg" alt="Morillas" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>M</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Morillas</span><span class="jersey-num">1</span></div>
+                  </div>
+                  <div class="player-card" data-name="Rubén Moreno" data-number="26" data-position="Portero" onclick="selectPlayer('Rubén Moreno', '26', 'Portero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/ruben26.jpg" alt="Rubén Moreno" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>RM</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Rubén Moreno</span><span class="jersey-num">26</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DEFENSAS -->
+              <div class="position-block" data-position-group="Defensa">
+                <div class="position-head"><h3>Defensas</h3><div class="rule"></div><span class="count">9 jugadores</span></div>
+                <div class="squad-grid">
+                  <div class="player-card" data-name="David Serrano" data-number="3" data-position="Defensa" onclick="selectPlayer('David Serrano', '3', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/david3.jpg" alt="David Serrano" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>DS</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">David Serrano</span><span class="jersey-num">3</span></div>
+                  </div>
+                  <div class="player-card" data-name="Mauro" data-number="20" data-position="Defensa" onclick="selectPlayer('Mauro', '20', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/mauro20.jpg" alt="Mauro" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>M</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Mauro</span><span class="jersey-num">20</span></div>
+                  </div>
+                  <div class="player-card" data-name="Javi Moyano" data-number="17" data-position="Defensa" onclick="selectPlayer('Javi Moyano', '17', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/javi17.jpg" alt="Javi Moyano" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>JM</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Javi Moyano</span><span class="jersey-num">17</span></div>
+                  </div>
+                  <div class="player-card" data-name="Moha" data-number="21" data-position="Defensa" onclick="selectPlayer('Moha', '21', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/moha21.jpg" alt="Moha" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>M</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Moha</span><span class="jersey-num">21</span></div>
+                  </div>
+                  <div class="player-card" data-name="David Márquez" data-number="5" data-position="Defensa" onclick="selectPlayer('David Márquez', '5', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/david5.jpg" alt="David Márquez" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>DM</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">David Márquez</span><span class="jersey-num">5</span></div>
+                  </div>
+                  <div class="player-card" data-name="Jaume Pol" data-number="4" data-position="Defensa" onclick="selectPlayer('Jaume Pol', '4', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/jaume3.jpg" alt="Jaume Pol" onerror="handleImgError(this)">
+                      <div class="avatar-fallback" style="display:none;"><span>JP</span></div>
+                    </div>
+                    <div class="player-name"><span class="name-text">Jaume Pol</span><span class="jersey-num">4</span></div>
+                  </div>
+                  <div class="player-card" data-name="Alex Pérez" data-number="24" data-position="Defensa" onclick="selectPlayer('Alex Pérez', '24', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/alex24.jpg" alt="Alex Perez" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>AP</span></div></div>
+                    <div class="player-name"><span class="name-text">Alex Pérez</span><span class="jersey-num">24</span></div>
+                  </div>
+                  <div class="player-card" data-name="Montejano" data-number="2" data-position="Defensa" onclick="selectPlayer('Montejano', '2', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/montejano2.jpg" alt="Montejano" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>M</span></div></div>
+                    <div class="player-name"><span class="name-text">Montejano</span><span class="jersey-num">2</span></div>
+                  </div>
+                  <div class="player-card" data-name="P. Nikolaev" data-number="12" data-position="Defensa" onclick="selectPlayer('P. Nikolaev', '12', 'Defensa', this)">
+                    <div class="player-photo">
+                      <img src="fotos/p12.jpg" alt="P. Nikolaev" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>PN</span></div></div>
+                    <div class="player-name"><span class="name-text">P. Nikolaev</span><span class="jersey-num">12</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CENTROCAMPISTAS -->
+              <div class="position-block" data-position-group="Centrocampista">
+                <div class="position-head"><h3>Centrocampistas</h3><div class="rule"></div><span class="count">9 jugadores</span></div>
+                <div class="squad-grid">
+                  <div class="player-card" data-name="Oscar Lozano" data-number="22" data-position="Centrocampista" onclick="selectPlayer('Oscar Lozano', '22', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/oscar22.jpg" alt="Oscar Lozano" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>OL</span></div></div>
+                    <div class="player-name"><span class="name-text">Oscar Lozano</span><span class="jersey-num">22</span></div>
+                  </div>
+                  <div class="player-card" data-name="Moha Keita" data-number="19" data-position="Centrocampista" onclick="selectPlayer('Moha Keita', '19', 'Centrocampista', this, 'Keita')">
+                    <div class="player-photo">
+                      <img src="fotos/moha19.jpg" alt="Moha Keita" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>MK</span></div></div>
+                    <div class="player-name"><span class="name-text">Moha Keita</span><span class="jersey-num">19</span></div>
+                  </div>
+                  <div class="player-card" data-name="Adri Paz" data-number="10" data-position="Centrocampista" onclick="selectPlayer('Adri Paz', '10', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/adri10.jpg" alt="Adri Paz" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>AP</span></div></div>
+                    <div class="player-name"><span class="name-text">Adri Paz</span><span class="jersey-num">10</span></div>
+                  </div>
+                  <div class="player-card" data-name="Busi" data-number="23" data-position="Centrocampista" onclick="selectPlayer('Busi', '23', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/busi23.jpg" alt="Busi" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>B</span></div></div>
+                    <div class="player-name"><span class="name-text">Busi</span><span class="jersey-num">23</span></div>
+                  </div>
+                  <div class="player-card" data-name="José Álvarez" data-number="6" data-position="Centrocampista" onclick="selectPlayer('José Álvarez', '6', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/jose6.jpg" alt="Jose Alvarez" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>JA</span></div></div>
+                    <div class="player-name"><span class="name-text">José Álvarez</span><span class="jersey-num">6</span></div>
+                  </div>
+                  <div class="player-card" data-name="Caballero" data-number="8" data-position="Centrocampista" onclick="selectPlayer('Caballero', '8', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/caballero8.jpg" alt="Caballero" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>C</span></div></div>
+                    <div class="player-name"><span class="name-text">Caballero</span><span class="jersey-num">8</span></div>
+                  </div>
+                  <div class="player-card" data-name="Peque Polo" data-number="14" data-position="Centrocampista" onclick="selectPlayer('Peque Polo', '14', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/peque14.jpg" alt="Peque Polo" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>PP</span></div></div>
+                    <div class="player-name"><span class="name-text">Peque Polo</span><span class="jersey-num">14</span></div>
+                  </div>
+                  <div class="player-card" data-name="Diego Fuentes" data-number="16" data-position="Centrocampista" onclick="selectPlayer('Diego Fuentes', '16', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/diego16.jpg" alt="Diego Fuentes" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>DF</span></div></div>
+                    <div class="player-name"><span class="name-text">Diego Fuentes</span><span class="jersey-num">16</span></div>
+                  </div>
+                  <div class="player-card" data-name="Nacho Castillo" data-number="18" data-position="Centrocampista" onclick="selectPlayer('Nacho Castillo', '18', 'Centrocampista', this)">
+                    <div class="player-photo">
+                      <img src="fotos/nacho18.jpg" alt="Nacho Castillo" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>NC</span></div></div>
+                    <div class="player-name"><span class="name-text">Nacho Castillo</span><span class="jersey-num">18</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DELANTEROS -->
+              <div class="position-block" data-position-group="Delantero" style="margin-bottom:0;">
+                <div class="position-head"><h3>Delanteros</h3><div class="rule"></div><span class="count">4 jugadores</span></div>
+                <div class="squad-grid">
+                  <div class="player-card" data-name="Fran Gallego" data-number="7" data-position="Delantero" onclick="selectPlayer('Fran Gallego', '7', 'Delantero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/fran7.jpg" alt="Fran gallego" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>FG</span></div></div>
+                    <div class="player-name"><span class="name-text">Fran Gallego</span><span class="jersey-num">7</span></div>
+                  </div>
+                  <div class="player-card" data-name="Mario Martos" data-number="11" data-position="Delantero" onclick="selectPlayer('Mario Martos', '11', 'Delantero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/mario11.jpg" alt="Mario martos" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>MM</span></div></div>
+                    <div class="player-name"><span class="name-text">Mario Martos</span><span class="jersey-num">11</span></div>
+                  </div>
+                  <div class="player-card" data-name="Yanis" data-number="15" data-position="Delantero" onclick="selectPlayer('Yanis', '15', 'Delantero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/yanis15.jpg" alt="Yanis" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>Y</span></div></div>
+                    <div class="player-name"><span class="name-text">Yanis</span><span class="jersey-num">15</span></div>
+                  </div>
+                  <div class="player-card" data-name="Siverio" data-number="9" data-position="Delantero" onclick="selectPlayer('Siverio', '9', 'Delantero', this)">
+                    <div class="player-photo">
+                      <img src="fotos/silverio9.jpg" alt="Sivgerio" onerror="handleImgError(this)">
+                      <div class="avatar-fallback"><span>S</span></div></div>
+                    <div class="player-name"><span class="name-text">Siverio</span><span class="jersey-num">9</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="squad-flat" style="display:none;">
+              <div class="squad-grid" id="squad-flat-grid"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- VISTA 2: FICHA DE JUGADOR -->
+        <div id="player-detail-view">
+          <button class="back-btn" onclick="showSquadList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Volver a la plantilla
+          </button>
+
+          <div class="player-detail-layout">
+            <!-- COLUMNA IZQUIERDA: TARJETA DEL JUGADOR CON SPIDER-CHART DEBAJO -->
+            <aside class="player-profile-card">
+              <div class="player-profile-photo-wrap">
+                <div class="player-photo player-profile-photo" id="player-profile-photo"></div>
+              </div>
+              <div class="player-profile-info" id="player-profile-info"></div>
+
+              <!-- SPIDER-CHART DEBAJO DEL JUGADOR EN LA MISMA COLUMNA -->
+              <div class="player-radar-container" id="radar-chart-card" style="display: none;">
+                <div class="radar-title">Rendimiento Físico</div>
+                <div style="position: relative; width: 100%; height: 260px;">
+                  <canvas id="playerRadarChart"></canvas>
+                </div>
+              </div>
+            </aside>
+
+            <!-- COLUMNA DERECHA: INFORME DE RENDIMIENTO Y TEXTOS DETALLADOS -->
+            <section class="player-report-panel">
+              <div class="player-report-heading">
+                <div>
+                  <span class="player-report-eyebrow">ANÁLISIS INDIVIDUAL</span>
+                  <h3>Informe de rendimiento</h3>
+                  <p>Datos extraídos tras el análisis de los videos</p>
+                </div>
+
+                <div class="player-report-controls" id="player-report-filter-bar" style="display:none;">
+                  <div class="player-report-control">
+                    <label for="player-jornada-filter">Jornada</label>
+                    <select id="player-jornada-filter" onchange="applyPlayerReportFilters()">
+                      <option value="all">Todas</option>
+                    </select>
+                  </div>
+
+                  <div class="player-report-control">
+                    <label for="player-report-sort">Ordenar</label>
+                    <select id="player-report-sort" onchange="applyPlayerReportFilters()">
+                      <option value="score-desc">Valoración ↑</option>
+                      <option value="score-asc">Valoración ↓</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+
+              <div id="player-data-container">
+                <div class="placeholder-box">Buscando datos del jugador…</div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==================== TAB 3: MAPAS DE CALOR Y MINIMAPAS ==================== -->
+      <div id="tab-heatmaps" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+        <div class="page-head">
+          <div>
+            <h2>Mapas de calor y grafos</h2>
+            <p>Pulsa para ver con detalle la imagen o el video.</p>
+          </div>
+          <button class="link-btn" onclick="loadHeatmaps()">Actualizar</button>
+        </div>
+
+        <div class="panel">
+          <div class="squad-header has-filters">
+            <div>
+              <h2>Mapas de calor y grafos disponibles</h2>
+              <p>Filtra por jornada y tipo de mapa para consultar la información</p>
+            </div>
+
+            <div class="squad-header-filters">
+              <div class="header-filter">
+                <label for="jornada-filter">Jornada</label>
+                <select id="jornada-filter" onchange="applyJornadaFilter()">
+                  <option value="all">Todas las jornadas</option>
+                </select>
+              </div>
+
+              <div class="header-filter">
+                <label for="heatmap-type-filter">Mapa</label>
+                <select id="heatmap-type-filter" onchange="applyJornadaFilter()">
+                  <option value="all">Todos</option>
+                  <option value="team">Equipo</option>
+                  <option value="mvp">Jugador destacado</option>
+                </select>
+              </div>
+
+              <div class="header-filter">
+                <label>Vista</label>
+                <div class="view-toggle">
+                  <button class="view-btn" data-media-view="heatmaps" onclick="setHeatmapMediaView('heatmaps')">Solo mapas</button>
+                  <button class="view-btn" data-media-view="graphs" onclick="setHeatmapMediaView('graphs')">Solo grafos</button>
+                </div>
+              </div>
+
+              <button type="button" class="jornada-clear" onclick="clearHeatmapFilters()">Ver todos</button>
+            </div>
+          </div>
+          <div class="heatmap-legend">
+          </div>
+          <div id="heatmaps-container">
+            <div class="placeholder-box">Buscando imágenes…</div>
+          </div>
+        </div>
+
+        <div class="panel" id="minimaps-panel">
+          <div id="minimaps-container">
+            <div class="placeholder-box">Buscando imágenes…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB: ANÁLISIS TÁCTICO DEL EQUIPO ==================== -->
+      <div id="tab-tactical" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+        <div class="page-head">
+          <div>
+            <h2>Estudio estratégico del equipo</h2>
+            <p>Información sobre el análisis de cada jornada.</p>
+          </div>
+          <button class="link-btn" onclick="loadTacticalAnalysis()">Actualizar</button>
+        </div>
+
+        <div class="panel">
+          <div class="squad-header has-filters">
+            <div>
+              <h2>Estudio estratégico por jornada</h2>
+              <p>Filtra por jornada para revisar el análisis táctico correspondiente</p>
+            </div>
+
+            <div class="squad-header-filters">
+              <div class="header-filter">
+                <label for="tactical-jornada-filter">Jornada</label>
+                <select id="tactical-jornada-filter" onchange="applyTacticalJornadaFilter()">
+                  <option value="all">Todas las jornadas</option>
+                </select>
+              </div>
+
+              <button type="button" class="jornada-clear" onclick="clearTacticalJornadaFilter()">Ver todas</button>
+            </div>
+          </div>
+          <div id="tactical-container">
+            <div class="placeholder-box">Buscando estudio estratégico…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 4: DETECCIONES FINALES ==================== -->
+      <div id="tab-detections" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+        <div class="page-head">
+          <div>
+            <h2>Detecciones finales</h2>
+            <p>Vídeos con las detecciones generados al finalizar el análisis</p>
+          </div>
+          <button class="link-btn" onclick="loadDetections()">Actualizar</button>
+        </div>
+
+        <div class="panel">
+          <div class="squad-header has-filters">
+            <div>
+              <h2>Vídeos de detecciones</h2>
+              <p>Filtra por jornada para ver los vídeos generados</p>
+            </div>
+
+            <div class="squad-header-filters">
+              <div class="header-filter">
+                <label for="detection-jornada-filter">Jornada</label>
+                <select id="detection-jornada-filter" onchange="applyDetectionJornadaFilter()">
+                  <option value="all">Todas las jornadas</option>
+                </select>
+              </div>
+
+              <button type="button" class="jornada-clear" onclick="clearDetectionJornadaFilter()">Ver todas</button>
+            </div>
+          </div>
+          <div id="detections-container">
+            <div class="placeholder-box">Buscando vídeos…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== TAB 5: JORNADAS DE LIGA ==================== -->
+      <div id="tab-jornadas" class="tab-content">
+        <button class="back-btn" onclick="switchTab('tab-dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Panel principal
+        </button>
+
+        <!-- VISTA 1: REJILLA DE LAS 38 JORNADAS -->
+        <div id="jornadas-grid-view">
+          <div class="page-head">
+            <div>
+              <h2>Jornadas de liga</h2>
+              <p>Selecciona una jornada para ver su información</p>
+            </div>
+            <button class="link-btn" onclick="loadJornadas()">Actualizar</button>
+          </div>
+
+          <div class="panel">
+            <div class="squad-header has-filters">
+              <div>
+                <h2>Calendario de jornadas</h2>
+                <p>Filtra por resultado y campo para localizar la jornada que buscas</p>
+              </div>
+
+              <div class="squad-header-filters">
+                <div class="header-filter">
+                  <label for="jornada-result-filter">Resultado</label>
+                  <select id="jornada-result-filter" onchange="applyJornadasFilters()">
+                    <option value="all">Todos los resultados</option>
+                    <option value="win">Victoria</option>
+                    <option value="draw">Empate</option>
+                    <option value="loss">Derrota</option>
+                    <option value="pending">Pendiente</option>
+                  </select>
+                </div>
+
+                <div class="header-filter">
+                  <label for="jornada-venue-filter">Campo</label>
+                  <select id="jornada-venue-filter" onchange="applyJornadasFilters()">
+                    <option value="all">Local y visitante</option>
+                    <option value="local">Local</option>
+                    <option value="visitante">Visitante</option>
+                  </select>
+                </div>
+
+                <button type="button" class="jornada-clear" onclick="clearJornadasFilters()">Ver todas</button>
+              </div>
+            </div>
+
+            <div id="jornadas-container" class="jornadas-grid">
+              <div class="placeholder-box">Cargando jornadas…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISTA 2: FICHA DE UNA JORNADA -->
+        <div id="jornada-detail-view">
+          <button class="back-btn" onclick="closeJornadaDetail()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Todas las jornadas
+          </button>
+
+          <div class="jornada-detail-head">
+            <h2 id="jornada-detail-title">Jornada</h2>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Datos del partido</div>
+            <div id="jornada-info-container">
+              <!-- Rellenado por JS a partir de JORNADAS_DATA -->
+            </div>
+          </div>
+
+          <div class="panel stats-panel">
+            <button type="button" class="stats-toggle-btn" id="stats-toggle-btn" onclick="toggleJornadaStats()">
+              <span class="panel-title">Estadísticas del partido</span>
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="jornada-stats-body" class="stats-body">
+              <div id="jornada-stats-container"></div>
+            </div>
+          </div>
+
+          <div class="panel clips-panel">
+            <div id="jornada-clips-container">
+              <div class="placeholder-box">Buscando clips…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

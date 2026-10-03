@@ -1,0 +1,228 @@
+# =====================================================================
+# football_ai — Phase 1 (Detection) configuration
+# =====================================================================
+
+model:
+  weights_path: "weights/best.pt"   # custom-trained YOLO11m weights
+  device: "auto"                    # "auto" | "cpu" | "cuda:0"
+  confidence_threshold: 0.35        # global confidence threshold
+  iou_threshold: 0.50               # NMS IoU threshold
+  image_size: 1280                  # inference resolution (long side)
+  # Per-class confidence overrides. The ball is small and hard to
+  # detect, so it usually needs a lower threshold than players.
+  class_confidence_overrides:
+    ball: 0.20        # small, fast object; below this you get false positives
+    player: 0.50      # players are easy — keep this high to stay clean
+    goalkeeper: 0.15  # rare/far from camera, needs a low bar to be caught
+    referee: 0.15     # only 1-2 on pitch; low bar to avoid missing them
+
+# Class index -> name mapping of the custom-trained model.
+classes:
+  0: "ball"
+  1: "goalkeeper"
+  2: "player"
+  3: "referee"
+
+video:
+  output_dir: "outputs"
+  save_video: true
+  output_codec: "mp4v"              # fourcc code for the output video
+
+visualization:
+  box_thickness: 2
+  font_scale: 0.5
+  show_confidence: true
+  # BGR colors per class (OpenCV uses BGR, not RGB).
+  colors:
+    ball:       [0, 255, 255]       # yellow
+    goalkeeper: [0, 0, 255]         # red
+    player:     [255, 0, 0]         # blue
+    referee:    [0, 255, 0]         # green
+
+debug:
+  enabled: false                    # master switch for visual debugging
+  show_window: false                # live cv2.imshow window ('q' quits)
+  save_debug_frames: false          # dump annotated frames as images
+  debug_frame_interval: 50          # save every Nth frame
+
+logging:
+  level: "INFO"                     # DEBUG | INFO | WARNING | ERROR
+  log_dir: "outputs/logs"
+  log_to_file: true
+
+# =====================================================================
+# Phase 2 — Tracking (BoT-SORT)
+# =====================================================================
+# Detection runs exactly as before; tracking is an extra stage layered
+# on top. Enable it with `enabled: true` or the --tracking CLI flag.
+tracking:
+  enabled: false
+  tracker_type: "botsort"           # "botsort" (preferred) | "bytetrack"
+  separate_ball: true               # track the ball with its own tracker
+  ball_class_name: "ball"
+  # Native ReID needs Ultralytics' model.track() path (detector features),
+  # which is unavailable when feeding our own detections. Left off here;
+  # GMC + Kalman + IoU still give strong ID stability under occlusion.
+  # Set true AND point reid_model at a checkpoint to enable appearance ReID.
+  with_reid: false
+  reid_model: "auto"
+  save_tracks: true
+
+  # Main tracker: player / goalkeeper / referee.
+  main:
+    track_high_thresh: 0.25
+    track_low_thresh: 0.10
+    new_track_thresh: 0.25
+    track_buffer: 30                # frames a lost track survives
+    match_thresh: 0.80
+    fuse_score: true
+    gmc_method: "sparseOptFlow"     # camera-motion compensation
+    proximity_thresh: 0.50
+    appearance_thresh: 0.80
+
+  # Ball tracker (BoT-SORT): only used as a FALLBACK when
+  # ball_tracking.enabled is false. Lower thresholds + longer buffer.
+  ball:
+    track_high_thresh: 0.10
+    track_low_thresh: 0.05
+    new_track_thresh: 0.10
+    track_buffer: 60
+    match_thresh: 0.80
+    fuse_score: false               # ball conf is low; fusing breaks re-association
+    gmc_method: "sparseOptFlow"
+    proximity_thresh: 0.50
+    appearance_thresh: 0.80
+
+  # Custom ball association (preferred). The ball is ~6-7 px wide but moves
+  # ~8-9 px/frame, so consecutive boxes have zero IoU and BoT-SORT can't
+  # link them. This tracker inflates the ball box FOR MATCHING ONLY and
+  # falls back to center-distance + velocity prediction when IoU is zero.
+  # The exported/visualized bbox is always the true (un-inflated) box.
+  ball_tracking:
+    enabled: true
+    matching_box_scale: 3.0         # inflate ball box x3 for matching
+    min_box_size: 20.0              # floor (px) for the inflated matching box
+    max_frame_gap: 30               # frames a ball track may coast unmatched
+    distance_gate_px: 50.0          # max center distance for a zero-IoU match
+
+  # Post-tracking ID stitching: re-link a new id to an old one when it
+  # appears near where the old track disappeared (reduces ID switches).
+  # Pure post-process; the BoT-SORT tracker itself is untouched.
+  # Enable with `enabled: true` or the --stitch-tracks CLI flag.
+  stitching:
+    enabled: false
+    max_frame_gap: 45               # frames a track may vanish before re-link
+    distance_gate_px: 120.0         # max gap between predicted & new position
+    size_ratio_gate: 1.6            # bbox size compatibility (max ratio)
+    match_same_class: true          # only stitch tracks of the same class
+    min_segment_length: 8           # drop noise tracks shorter than this (ball kept)
+
+  # Appearance ID-swap correction: fixes the case stitching CAN'T — two
+  # players crossing and EXCHANGING ids. Detected from jersey color (a track
+  # that flips team mid-way) and undone from the crossing frame onward.
+  # Enable with `enabled: true` or the --fix-swaps CLI flag.
+  swap_correction:
+    enabled: false
+    samples_per_track: 40           # appearance samples per track (temporal)
+    min_track_length: 30            # only consider reasonably long tracks
+    frame_tol: 25                   # max frame gap between the paired flips
+    distance_gate_px: 220.0         # how close the two tracks must cross
+    min_purity: 0.8                 # how clean the before/after split must be
+
+# =====================================================================
+# Phase 3 — Track-level Role Refinement
+# =====================================================================
+# Runs AFTER tracking. Corrects each track's role adaptively per match:
+# it discovers the two main team appearance clusters from the tracked
+# players, flags appearance outliers, and separates referee vs goalkeeper
+# using track-level appearance, image-space position and motion — with
+# temporal voting so no role flips on a single frame. NO fixed color
+# rules (no "black = referee", no "green = goalkeeper").
+role_refinement:
+  enabled: false
+  min_track_length: 15              # frames a track must span to be "stable"
+  samples_per_track: 20             # frames sampled per track for appearance
+  jersey_crop_top: 0.15             # top of jersey region (fraction of bbox h)
+  jersey_crop_bottom: 0.55          # bottom of jersey region (fraction of bbox h)
+  jersey_crop_side: 0.15            # trim this fraction off each side (arms/bg)
+  team_cluster_count: 2             # number of team appearance clusters
+  outlier_distance_threshold: 0.35  # cosine distance beyond which = outlier
+  temporal_vote_threshold: 0.70     # min winning vote fraction to commit a role
+  unknown_if_low_confidence: true   # below the vote threshold -> "unknown"
+  # Detector referee prior: keep a detector "referee" as referee when
+  # refinement flipped it to "player" with confidence below the override
+  # bar (assistant referees often resemble one team's kit).
+  referee_detector_prior_enabled: true
+  referee_to_player_override_confidence: 0.90
+  ball_class_name: "ball"
+  save_roles: true
+  save_role_video: false            # render an annotated role video
+  random_seed: 42                   # determinism for clustering
+
+# =====================================================================
+# Phase 3.5 — Human-in-the-Loop Role Correction
+# =====================================================================
+# Runs AFTER role refinement. Surfaces ONLY ambiguous tracks (role
+# "unknown" or low confidence) for manual review in a Streamlit UI, stores
+# the reviewer's choices separately, and overlays them on the automatic
+# results to produce a final roles JSON. Automatic results are never
+# overwritten and corrections are reversible (delete the entry to revert).
+manual_correction:
+  enabled: false
+  review_confidence_threshold: 0.65   # roles below this become review candidates
+  review_roles: ["unknown"]           # roles always reviewed regardless of conf
+  representative_frames: 9             # frames sampled per track for review (catch ID switches)
+  corrections_file: "outputs/manual_role_corrections.json"
+  review_dir: "outputs/manual_review"
+  save_review_frames: true            # also save full frames (not just crops)
+  save_final_video: false             # render the final annotated role video
+  # User-guided initialization: label boxes in a few frames as seeds.
+  initialization_labels_file: "outputs/manual_initialization_labels.json"
+  autosave: false                     # UI: save automatically after each edit
+
+# =====================================================================
+# Phase 4 — Pitch calibration (manual file OR automatic keypoint model)
+# =====================================================================
+# `auto: true` (or --auto-calibration) computes the homography per frame
+# from a YOLO-pose pitch-keypoint model — no manual clicking, follows the
+# camera. Falls back to the manual pitch_calibration.json when auto is off.
+calibration:
+  auto: false
+  keypoint_model: "weights/pitch_keypoints_yolo11m_best.pt.pt"
+  keypoint_sample_every: 5            # calibrate every Nth frame
+  keypoint_min_points: 5              # min keypoints to solve a frame
+  keypoint_min_conf: 0.5             # per-keypoint confidence gate
+  keypoint_max_error_m: 4.0          # reject frames above this reproj error
+  px_per_meter: 8.0
+  reprojection_warn_threshold: 5.0
+
+# =====================================================================
+# Phase 4 — Minimap dot coloring
+# =====================================================================
+# Analytics view colors dots by team/role (player team 0 = blue, team 1 =
+# orange, goalkeeper = red, referee = yellow, ball = white, unknown =
+# gray). Per-track colors are for DEBUGGING only (--minimap-color-mode
+# track_id). Roles come from <video>_roles_final.json when corrections are
+# applied, else <video>_roles.json.
+minimap:
+  color_mode: "team_role"             # team_role (default) | track_id (debug)
+  show_track_ids: false               # draw the track id INSIDE each dot
+  px_per_meter: 9.0                   # minimap resolution (bigger = sharper)
+  player_dot_radius: 9                # bigger = more visible players
+  ball_dot_radius: 6
+  stripes: 12                         # mown-stripe count (0 = flat green)
+
+# =====================================================================
+# Phase 4 — Minimap overlay (picture-in-picture inside the main video)
+# =====================================================================
+# When enabled (--minimap-overlay, which also turns on --save-minimap),
+# the top-down minimap is composited into the main annotated video,
+# producing outputs/<video>_final_with_minimap.mp4. Needs --calibration;
+# skipped safely with a warning if calibration is missing.
+minimap_overlay:
+  enabled: false
+  position: "top_right"               # top_right | top_left | bottom_right | bottom_left
+  width_ratio: 0.20                   # overlay width as a fraction of video width
+  margin: 20                          # px from the frame edge
+  background_alpha: 0.65              # darkness of the backing panel (0..1)
+  border: true                        # thin white border around the minimap
