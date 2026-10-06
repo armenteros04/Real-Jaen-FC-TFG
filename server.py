@@ -472,15 +472,46 @@ def list_jornada_clips(jornada: int):
             "clips": []
         }
 
-    clips = []
+    # Una misma jugada puede tener varias versiones (p. ej. "<nombre>.mp4" y
+    # "<nombre> player.mp4"). Se agrupan para que la WebApp muestre un único
+    # análisis por jugada y no lo repita por cada variante.
+    VARIANT_SUFFIXES = (" player",)
+
+    def _base_stem(stem: str) -> str:
+        lowered = stem.lower()
+        for suffix in VARIANT_SUFFIXES:
+            if lowered.endswith(suffix):
+                return stem[: -len(suffix)].rstrip()
+        return stem
+
+    def _entry(path: Path) -> dict:
+        relative_path = path.relative_to(OUTPUTS_DIR).as_posix()
+        return {
+            "name": path.name,
+            "path": relative_path,
+            "url": f"/outputs/{relative_path}",
+        }
+
+    groups: Dict[str, dict] = {}
     for path in sorted(jornada_dir.rglob("*.mp4"), key=lambda p: p.name.lower()):
-        if path.is_file():
-            relative_path = path.relative_to(OUTPUTS_DIR).as_posix()
-            clips.append({
-                "name": path.name,
-                "path": relative_path,
-                "url": f"/outputs/{relative_path}"
-            })
+        if not path.is_file():
+            continue
+        key = (path.parent.as_posix(), _base_stem(path.stem).lower())
+        group = groups.setdefault(key, {"main": None, "variants": []})
+        if _base_stem(path.stem) == path.stem:
+            group["main"] = path
+        else:
+            group["variants"].append(path)
+
+    clips = []
+    for group in groups.values():
+        # Si existe el clip base, las variantes cuelgan de él; si solo existe
+        # la variante, se muestra ella sola.
+        main = group["main"] or group["variants"].pop(0)
+        item = _entry(main)
+        if group["variants"]:
+            item["variants"] = [_entry(v) for v in group["variants"]]
+        clips.append(item)
 
     return {
         "jornada": jornada,

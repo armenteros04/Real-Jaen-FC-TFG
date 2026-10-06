@@ -63,7 +63,7 @@ function renderCarousel(){
 
   if(dotsBox){
     dotsBox.innerHTML = DETECTION_EXAMPLES.map((_, i) =>
-            `<button class="carousel-dot" onclick="carouselGoTo(${i})" aria-label="Ir a la foto ${i+1}" type="button"></button>`
+        `<button class="carousel-dot" onclick="carouselGoTo(${i})" aria-label="Ir a la foto ${i+1}" type="button"></button>`
     ).join('');
   }
 
@@ -323,8 +323,8 @@ async function loadHeatmaps() {
       const teamNames = await stemCache.get(cacheKey);
       const teamId = extractTeamId(f);
       const teamName = teamId !== null
-              ? (teamNames[teamId] || `Equipo ${teamId}`)
-              : null;
+          ? (teamNames[teamId] || `Equipo ${teamId}`)
+          : null;
       return { file: f, caption: formatHeatmapCaption(f, teamName) };
     }));
 
@@ -373,22 +373,22 @@ function applyJornadaFilter(){
 
   const suffixJornada = jornadaNum !== null ? ` para la jornada ${jornadaNum}` : '';
   const suffixType = heatmapType === 'team'
-          ? ' de equipo'
-          : heatmapType === 'mvp'
-                  ? ' de MVP'
-                  : '';
+      ? ' de equipo'
+      : heatmapType === 'mvp'
+          ? ' de MVP'
+          : '';
   const suffix = `${suffixJornada}${suffixType}`;
 
   // Si se selecciona un tipo concreto, no mezclamos otros tipos de imágenes.
   const heatSource = heatmapType === 'all'
-          ? (heatmapImgs.length ? heatmapImgs : otherImgs)
-          : heatmapImgs;
+      ? (heatmapImgs.length ? heatmapImgs : otherImgs)
+      : heatmapImgs;
   const heatEmptyMsg = heatSource.length ? '' : `No se encontraron mapas de calor${suffix}.`;
 
   heatEl.innerHTML = renderImageGrid(heatSource, heatEmptyMsg);
   miniEl.innerHTML = renderVideoGrid(
-          minimapImgs.map(f => ({ file: f, caption: formatGrafoCaption(f) })),
-          `No se encontraron grafos${suffix}.`
+      minimapImgs.map(f => ({ file: f, caption: formatGrafoCaption(f) })),
+      `No se encontraron grafos${suffix}.`
   );
 }
 
@@ -474,11 +474,11 @@ async function loadTacticalAnalysis(){
     }
 
     const fileContents = await Promise.all(
-            files.map(async file => {
-              const text = await fetch(`${API_BASE}/outputs/${file}`).then(r => r.text());
-              const teamNames = await fetchTacticalTeamNames(file);
-              return { file, teams: parseTeamTacticalText(text), teamNames };
-            })
+        files.map(async file => {
+          const text = await fetch(`${API_BASE}/outputs/${file}`).then(r => r.text());
+          const teamNames = await fetchTacticalTeamNames(file);
+          return { file, teams: parseTeamTacticalText(text), teamNames };
+        })
     );
 
     allTacticalClips = fileContents.filter(c => c.teams.length > 0);
@@ -653,7 +653,7 @@ function applyDetectionJornadaFilter(){
   const jornadaValue = sel ? sel.value : 'all';
   const jornadaNum = jornadaValue === 'all' ? null : parseInt(jornadaValue, 10);
   const filtered = allDetectionFiles.filter(f =>
-          jornadaNum === null || extractJornada(f) === jornadaNum
+      jornadaNum === null || extractJornada(f) === jornadaNum
   );
   renderDetectionVideos(filtered);
 }
@@ -694,16 +694,16 @@ async function populateVideoSelect(){
   if(videoSelectLoaded) return;
 
   const results = await Promise.all(
-          JORNADAS_DATA.map(async j => {
-            try{
-              const res = await fetch(`${API_BASE}/api/jornadas/${j.numero}/clips`);
-              if(!res.ok) throw new Error(`HTTP ${res.status}`);
-              const data = await res.json();
-              return { numero: j.numero, clips: Array.isArray(data.clips) ? data.clips : [] };
-            }catch(e){
-              return { numero: j.numero, clips: [] };
-            }
-          })
+      JORNADAS_DATA.map(async j => {
+        try{
+          const res = await fetch(`${API_BASE}/api/jornadas/${j.numero}/clips`);
+          if(!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          return { numero: j.numero, clips: Array.isArray(data.clips) ? data.clips : [] };
+        }catch(e){
+          return { numero: j.numero, clips: [] };
+        }
+      })
   );
 
   const groups = results.filter(r => r.clips.length > 0);
@@ -747,8 +747,8 @@ function renderAnalysisTarget(videoValue, device){
   const clipLabel = clipShortLabel(fileName) || fileName;
   const jornadaTxt = jornadaNum !== null ? `Jornada ${jornadaNum}` : 'Jornada sin identificar';
   const rivalTxt = (j && j.rival)
-          ? `${escapeHtml(j.rival)} · ${j.campo === 'visitante' ? 'Visitante' : 'Local'}`
-          : '';
+      ? `${escapeHtml(j.rival)} · ${j.campo === 'visitante' ? 'Visitante' : 'Local'}`
+      : '';
   const isCpu = device === 'cpu';
   const deviceTxt = isCpu ? 'CPU' : 'GPU 0';
 
@@ -995,8 +995,8 @@ function renderPipelineStage(stage, isError, message){
       else if(i < stage || (isFinalDone && i === stage)) cls += " done";
       else if(i === stage) cls += " active";
       const dotContent = (cls.includes("done"))
-              ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-              : (i + 1);
+          ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          : (i + 1);
       return `
               <div class="${cls}">
                 <div class="p-step-line"></div>
@@ -1036,7 +1036,7 @@ function updatePipelineResultsPanel(show){
   if(show){
     const n = analyzedJornadaNum();
     document.getElementById('pipeline-results-title').textContent =
-            n !== null ? `Resultados de la Jornada ${n} listos` : 'Resultados listos';
+        n !== null ? `Resultados de la Jornada ${n} listos` : 'Resultados listos';
     if(!wasVisible) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
@@ -1123,9 +1123,9 @@ function correctionImgUrl(path){
 
 function renderCorrectionPanel(data){
   document.getElementById("correction-banner-title").innerText =
-          `${data.n_candidates} track(s) pendientes de revisar`;
+      `${data.n_candidates} track(s) pendientes de revisar`;
   correctionFrameSize = (Array.isArray(data.frame_size) && data.frame_size.length === 2)
-          ? data.frame_size : null;
+      ? data.frame_size : null;
   renderCorrectionTeamLegend(data.team_legend || {});
   renderCorrectionTeamNames(data.team_legend || {}, data.team_names || {});
   renderCorrectionSummary(data.summary || {});
@@ -1168,14 +1168,14 @@ function renderPlayerNameMenu(tid, filterText){
   const q = (filterText || "").trim().toLowerCase();
   const all = squadPlayerNamesList();
   const filtered = q
-          ? all.filter(p => p.name.toLowerCase().includes(q) || p.number.toLowerCase() === q)
-          : all;
+      ? all.filter(p => p.name.toLowerCase().includes(q) || p.number.toLowerCase() === q)
+      : all;
   menu.innerHTML = filtered.length
-          ? filtered.map(p => `
+      ? filtered.map(p => `
             <div class="team-name-option" data-tid="${tid}" data-value="${escapeHtml(p.name)}"
                  onmousedown="event.preventDefault(); selectPlayerNameOption(this)">${escapeHtml(p.name)}${p.number ? ` <span class="player-name-option-num">#${escapeHtml(p.number)}</span>` : ''}</div>
           `).join("")
-          : `<div class="team-name-option-empty">Sin coincidencias — se guardará el nombre escrito</div>`;
+      : `<div class="team-name-option-empty">Sin coincidencias — se guardará el nombre escrito</div>`;
 }
 
 function openPlayerNameMenu(tid){
@@ -1216,11 +1216,11 @@ function renderTeamNameMenu(tid, filterText){
   const all = teamNameOptionsList();
   const filtered = q ? all.filter(n => n.toLowerCase().includes(q)) : all;
   menu.innerHTML = filtered.length
-          ? filtered.map(n => `
+      ? filtered.map(n => `
             <div class="team-name-option" data-tid="${tid}" data-value="${escapeHtml(n)}"
                  onmousedown="event.preventDefault(); selectTeamNameOption(this)">${escapeHtml(n)}</div>
           `).join("")
-          : `<div class="team-name-option-empty">Sin coincidencias — se guardará el nombre escrito</div>`;
+      : `<div class="team-name-option-empty">Sin coincidencias — se guardará el nombre escrito</div>`;
 }
 
 function openTeamNameMenu(tid){
@@ -1564,8 +1564,8 @@ function renderCorrectionCandidates(){
 
 async function finishCorrectionReview(action){
   const msg = action === "skip"
-          ? "¿Omitir la revisión manual? Los tracks sin corregir mantendrán su rol automático."
-          : "¿Finalizar la revisión y continuar el análisis con las correcciones guardadas?";
+      ? "¿Omitir la revisión manual? Los tracks sin corregir mantendrán su rol automático."
+      : "¿Finalizar la revisión y continuar el análisis con las correcciones guardadas?";
   if(!confirm(msg)) return;
   try{
     const res = await fetch(`${API_BASE}/api/correction/finish?action=${action}`, { method: "POST" });
@@ -1639,11 +1639,20 @@ function levelClass(level){
 }
 
 function getDetectionKey(filename){
-  let base = filename.replace(/\.[^/.]+$/, '');
+  // Se ignora la carpeta y la extensión: solo cuenta el nombre del archivo.
+  let base = filename.split('/').pop().replace(/\.[^/.]+$/, '');
   const m = base.match(/jornada\D*(\d+).*?gol\D*(\d+)/i);
   if(m) return `jornada${m[1]}_gol${m[2]}`;
-  base = base.replace(/_(analytics|final[_-]?report|report|metrics|stats|summary|data|tracking|player)$/i, '');
-  return base;
+  // Se quitan en bucle TODOS los sufijos finales (p. ej. "..._player_analytics"
+  // -> "..."), separados por "_", "-" o espacio, para que el informe del clip
+  // y el del jugador acaben con la misma clave y se fusionen en una tarjeta.
+  const suffix = /[_\s-]+(analytics|final[_-]?report|final|report|metrics|stats|summary|data|tracking|player)$/i;
+  let prev;
+  do {
+    prev = base;
+    base = base.replace(suffix, '');
+  } while(base !== prev);
+  return base.trim();
 }
 
 function formatDetectionTitle(key){
@@ -1679,8 +1688,8 @@ function groupMatchesByDetection(matches){
         if(prev.fatiga === null) prev.fatiga = narrative.fatiga;
         if(narrative.description && narrative.description !== prev.description){
           prev.description = prev.description
-                  ? `${prev.description} ${narrative.description}`
-                  : narrative.description;
+              ? `${prev.description} ${narrative.description}`
+              : narrative.description;
         }
         group.raws.push({ file: match.file, line: match.line });
       }
@@ -1949,8 +1958,8 @@ function renderDetectionCard(group){
     }
     // Si el .txt no trae impacto, se deduce de la nota (misma regla que el backend)
     const impactoShown = parsed.impacto || (parsed.score
-            ? (parseFloat(parsed.score) >= 7.5 ? 'Alto' : (parseFloat(parsed.score) >= 5 ? 'Medio' : 'Bajo'))
-            : null);
+        ? (parseFloat(parsed.score) >= 7.5 ? 'Alto' : (parseFloat(parsed.score) >= 5 ? 'Medio' : 'Bajo'))
+        : null);
     if(impactoShown){
       summaryHtml += `<span class="tag-pill ${levelClass(impactoShown)}"><span class="dot"></span>Impacto ${escapeHtml(impactoShown)}</span>`;
     }
@@ -1967,8 +1976,8 @@ function renderDetectionCard(group){
     const mp = group.metrics ? group.metrics.parsed : null;
     const seed = `${group.key}:${mp ? mp.stats.join(',') : ''}:${np && np.score ? np.score : ''}`;
     const fallbackText = generateFallbackDescription(
-            np ? Object.assign({}, np, { impacto: np.impacto || (np.score ? (parseFloat(np.score) >= 7.5 ? 'Alto' : (parseFloat(np.score) >= 5 ? 'Medio' : 'Bajo')) : null) }) : null,
-            mp, seed);
+        np ? Object.assign({}, np, { impacto: np.impacto || (np.score ? (parseFloat(np.score) >= 7.5 ? 'Alto' : (parseFloat(np.score) >= 5 ? 'Medio' : 'Bajo')) : null) }) : null,
+        mp, seed);
     bodyHtml += `<p class="report-description">${escapeHtml(fallbackText)}</p>`;
   }
 
@@ -1992,8 +2001,8 @@ function renderDetectionCard(group){
   const jornadaNum = extractJornada(primaryFile);
   const goalInfo = extractGoalInfo(primaryFile);
   const detectionTitle = (jornadaNum && goalInfo)
-          ? `Jornada ${jornadaNum} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`
-          : formatDetectionTitle(group.key);
+      ? `Jornada ${jornadaNum} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`
+      : formatDetectionTitle(group.key);
 
   box.innerHTML = `
         <div class="result-source">${escapeHtml(detectionTitle)}</div>
@@ -2017,9 +2026,9 @@ function buildFlatSquad(){
   const cards = Array.from(document.querySelectorAll('#squad-grouped .player-card'));
 
   cards
-          .map(c => ({ el: c.cloneNode(true), number: parseInt(c.dataset.number, 10) || 0 }))
-          .sort((a, b) => a.number - b.number)
-          .forEach(({ el }) => grid.appendChild(el));
+      .map(c => ({ el: c.cloneNode(true), number: parseInt(c.dataset.number, 10) || 0 }))
+      .sort((a, b) => a.number - b.number)
+      .forEach(({ el }) => grid.appendChild(el));
 
   squadFlatBuilt = true;
 }
@@ -2103,11 +2112,11 @@ async function selectPlayer(playerName, number, position, cardElement, searchNam
     let matchesFound = [];
 
     const fileContents = await Promise.all(
-            txtFiles.map(file =>
-                    fetch(`${API_BASE}/outputs/${file}`)
-                            .then(res => res.text())
-                            .then(text => ({ file, text }))
-            )
+        txtFiles.map(file =>
+            fetch(`${API_BASE}/outputs/${file}`)
+                .then(res => res.text())
+                .then(text => ({ file, text }))
+        )
     );
 
     fileContents.forEach(({ file, text }) => {
@@ -2115,10 +2124,10 @@ async function selectPlayer(playerName, number, position, cardElement, searchNam
       const matchingLines = lines.filter(line => {
         const l = line.toLowerCase();
         const matchesTerm =
-                l.includes(searchTerm) ||
-                l.includes(`player_${number}`) ||
-                l.includes(`dorsal ${number}`) ||
-                l.includes(`id ${number}`);
+            l.includes(searchTerm) ||
+            l.includes(`player_${number}`) ||
+            l.includes(`dorsal ${number}`) ||
+            l.includes(`id ${number}`);
         if (!matchesTerm) return false;
 
         // Descartamos la línea de cabecera de cada informe, p. ej.
@@ -2254,8 +2263,8 @@ function renderPlayerReportCards(list){
 
   if (countEl) {
     countEl.textContent = (list.length === total)
-            ? `${total} detección${total === 1 ? '' : 'es'}`
-            : `${list.length} de ${total} detecciones`;
+        ? `${total} detección${total === 1 ? '' : 'es'}`
+        : `${list.length} de ${total} detecciones`;
   }
 
   container.innerHTML = '';
@@ -2352,28 +2361,28 @@ async function loadJornadas(){
   }
 
   const results = await Promise.all(
-          JORNADAS_DATA.map(async j => {
-            try {
-              const res = await fetch(`${API_BASE}/api/jornadas/${j.numero}/clips`);
-              if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      JORNADAS_DATA.map(async j => {
+        try {
+          const res = await fetch(`${API_BASE}/api/jornadas/${j.numero}/clips`);
+          if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
-              const data = await res.json();
-              const clips = Array.isArray(data.clips) ? data.clips : [];
+          const data = await res.json();
+          const clips = Array.isArray(data.clips) ? data.clips : [];
 
-              return {
-                numero: j.numero,
-                clips,
-                ok: true
-              };
-            } catch(e) {
-              console.error(`Error al consultar los informes`, e);
-              return {
-                numero: j.numero,
-                clips: [],
-                ok: false
-              };
-            }
-          })
+          return {
+            numero: j.numero,
+            clips,
+            ok: true
+          };
+        } catch(e) {
+          console.error(`Error al consultar los informes`, e);
+          return {
+            numero: j.numero,
+            clips: [],
+            ok: false
+          };
+        }
+      })
   );
 
   // Si el usuario ha provocado otra carga mientras esta terminaba,
@@ -2433,8 +2442,8 @@ function updateSidebarQuickStats(){
         const src = proxima.escudo_rival ? `fotos/${proxima.escudo_rival}` : '';
         const initials = initialsOf(proxima.rival);
         crestBox.innerHTML = src
-                ? `<img src="${src}" alt="${escapeHtml(proxima.rival || '')}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span>${escapeHtml(initials)}</span>';">`
-                : `<span>${escapeHtml(initials)}</span>`;
+            ? `<img src="${src}" alt="${escapeHtml(proxima.rival || '')}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span>${escapeHtml(initials)}</span>';">`
+            : `<span>${escapeHtml(initials)}</span>`;
       }
     } else {
       nextBox.style.display = 'none';
@@ -2464,8 +2473,8 @@ function updateSidebarQuickStats(){
         const src = ultima.escudo_rival ? `fotos/${ultima.escudo_rival}` : '';
         const initials = initialsOf(ultima.rival);
         crestBox.innerHTML = src
-                ? `<img src="${src}" alt="${escapeHtml(ultima.rival || '')}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span>${escapeHtml(initials)}</span>';">`
-                : `<span>${escapeHtml(initials)}</span>`;
+            ? `<img src="${src}" alt="${escapeHtml(ultima.rival || '')}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span>${escapeHtml(initials)}</span>';">`
+            : `<span>${escapeHtml(initials)}</span>`;
       }
     } else {
       lastBox.style.display = 'none';
@@ -2475,7 +2484,7 @@ function updateSidebarQuickStats(){
 
 function matchState(j){
   if(j.goles_jaen === null || j.goles_jaen === undefined || j.goles_jaen === '' ||
-          j.goles_rival === null || j.goles_rival === undefined || j.goles_rival === ''){
+      j.goles_rival === null || j.goles_rival === undefined || j.goles_rival === ''){
     return { text: 'Pendiente', cls: 'pending' };
   }
   const gj = Number(j.goles_jaen), gr = Number(j.goles_rival);
@@ -2541,8 +2550,8 @@ function renderJornadasGrid(){
     const jaenCrest = crestHtml(ESCUDO_JAEN, 'Real Jaén', 'crest-sm');
     const rivalCrest = crestHtml(rivalCrestSrc, j.rival, 'crest-sm');
     const crestsInOrder = j.campo === 'visitante'
-            ? `${rivalCrest}<span class="vs-sep">–</span>${jaenCrest}`
-            : `${jaenCrest}<span class="vs-sep">–</span>${rivalCrest}`;
+        ? `${rivalCrest}<span class="vs-sep">–</span>${jaenCrest}`
+        : `${jaenCrest}<span class="vs-sep">–</span>${rivalCrest}`;
     return `
         <button class="jornada-card" onclick="openJornada(${j.numero})">
           <span class="jnum">Jornada ${j.numero}</span>
@@ -2576,7 +2585,7 @@ function countClipsForJornada(n){
 function openJornada(n){
   currentJornadaNum = n;
   const j = jornadasCache.find(x => x.numero === n) ||
-          { numero: n, rival: "", escudo_rival: "", estadio: "", fecha: "", campo: "local", goles_jaen: null, goles_rival: null, notas: "" };
+      { numero: n, rival: "", escudo_rival: "", estadio: "", fecha: "", campo: "local", goles_jaen: null, goles_rival: null, notas: "" };
 
   document.getElementById('jornadas-grid-view').style.display = 'none';
   document.getElementById('jornada-detail-view').style.display = 'block';
@@ -2599,8 +2608,8 @@ function openJornada(n){
   const scoreLeft = j.campo === 'visitante' ? j.goles_rival : j.goles_jaen;
   const scoreRight = j.campo === 'visitante' ? j.goles_jaen : j.goles_rival;
   const scoreTxtOriented = (st.cls === 'pending')
-          ? '– : –'
-          : `${scoreLeft ?? '–'} : ${scoreRight ?? '–'}`;
+      ? '– : –'
+      : `${scoreLeft ?? '–'} : ${scoreRight ?? '–'}`;
 
   document.getElementById('jornada-info-container').innerHTML = `
         <div class="match-header">
@@ -2675,11 +2684,11 @@ function renderJornadaStats(n, j){
   const flashscoreUrl = j.flashscore_url || '';
 
   const linkHtml = flashscoreUrl
-          ? `<a class="stats-source-link" href="${flashscoreUrl}" target="_blank" rel="noopener">
+      ? `<a class="stats-source-link" href="${flashscoreUrl}" target="_blank" rel="noopener">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
              Ver más detalles
            </a>`
-          : '';
+      : '';
 
   if(!stats){
     container.innerHTML = `
