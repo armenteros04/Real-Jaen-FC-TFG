@@ -232,7 +232,7 @@ let allMinimapFiles = [];
 let allOtherImageFiles = [];
 
 function extractJornada(filename){
-  const m = filename.match(/jornada\D*(\d{1,2})/i);
+  const m = filename.match(/jornada\D*(\d{1,3})(?!\d)/i);
   return m ? parseInt(m[1], 10) : null;
 }
 
@@ -248,13 +248,7 @@ function getHeatmapType(filename){
 function populateJornadaFilter(){
   const sel = document.getElementById('jornada-filter');
   if(!sel || sel.dataset.populated) return;
-  for(let i = 1; i <= 38; i++){
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = `Jornada ${i}`;
-    sel.appendChild(opt);
-  }
-  sel.dataset.populated = "true";
+  fillJornadaSelect(sel);
 }
 
 function clearJornadaFilter(){
@@ -371,7 +365,7 @@ function applyJornadaFilter(){
   const minimapImgs = allMinimapFiles.filter(matchesJornada);
   const otherImgs = allOtherImageFiles.filter(matchesJornada);
 
-  const suffixJornada = jornadaNum !== null ? ` para la jornada ${jornadaNum}` : '';
+  const suffixJornada = jornadaNum !== null ? paraJornada(jornadaNum) : '';
   const suffixType = heatmapType === 'team'
       ? ' de equipo'
       : heatmapType === 'mvp'
@@ -416,13 +410,7 @@ let allTacticalClips = [];
 function populateTacticalJornadaFilter(){
   const sel = document.getElementById('tactical-jornada-filter');
   if(!sel || sel.dataset.populated) return;
-  for(let i = 1; i <= 38; i++){
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = `Jornada ${i}`;
-    sel.appendChild(opt);
-  }
-  sel.dataset.populated = "true";
+  fillJornadaSelect(sel);
 }
 
 function clearTacticalJornadaFilter(){
@@ -498,7 +486,7 @@ function applyTacticalJornadaFilter(){
   const clips = allTacticalClips.filter(c => jornadaNum === null || extractJornada(c.file) === jornadaNum);
 
   if(clips.length === 0){
-    const suffix = jornadaNum !== null ? ` para la jornada ${jornadaNum}` : '';
+    const suffix = jornadaNum !== null ? paraJornada(jornadaNum) : '';
     el.innerHTML = `<div class="placeholder-box">No se encontraron Estudio estratégico${suffix}.</div>`;
     return;
   }
@@ -570,7 +558,7 @@ function renderTacticalClips(clips){
     const goalInfo = extractGoalInfo(clip.file);
     let title;
     if(jornadaNum && goalInfo){
-      title = `Jornada ${jornadaNum} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`;
+      title = `${jornadaLabel(jornadaNum)} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`;
     } else {
       title = formatDetectionTitle(getDetectionKey(clip.file));
     }
@@ -615,13 +603,7 @@ let allDetectionFiles = [];
 function populateDetectionJornadaFilter(){
   const sel = document.getElementById('detection-jornada-filter');
   if(!sel || sel.dataset.populated) return;
-  for(let i = 1; i <= 38; i++){
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = `Jornada ${i}`;
-    sel.appendChild(opt);
-  }
-  sel.dataset.populated = 'true';
+  fillJornadaSelect(sel);
 }
 
 function clearDetectionJornadaFilter(){
@@ -634,7 +616,7 @@ function renderDetectionVideos(videos){
   const el = document.getElementById('detections-container');
   const sel = document.getElementById('detection-jornada-filter');
   const jornadaValue = sel ? sel.value : 'all';
-  const suffix = jornadaValue === 'all' ? '' : ` para la jornada ${jornadaValue}`;
+  const suffix = jornadaValue === 'all' ? '' : paraJornada(parseInt(jornadaValue, 10));
 
   if(videos.length === 0){
     el.innerHTML = `<div class="placeholder-box">No se encontraron vídeos de detección final${suffix}.</div>`;
@@ -715,7 +697,7 @@ async function populateVideoSelect(){
   }
 
   select.innerHTML = groups.map(g => `
-        <optgroup label="Jornada ${g.numero}">
+        <optgroup label="${escapeHtml(jornadaLabel(g.numero))}">
           ${g.clips.map(c => `<option value="${escapeHtml('OUTPUTS/' + c.path)}">${escapeHtml(clipShortLabel(c.name))}</option>`).join('')}
         </optgroup>
     `).join('');
@@ -745,7 +727,7 @@ function renderAnalysisTarget(videoValue, device){
   const j = jornadaNum !== null ? (JORNADAS_DATA.find(x => x.numero === jornadaNum) || null) : null;
   const fileName = videoValue.split('/').pop();
   const clipLabel = clipShortLabel(fileName) || fileName;
-  const jornadaTxt = jornadaNum !== null ? `Jornada ${jornadaNum}` : 'Jornada sin identificar';
+  const jornadaTxt = jornadaNum !== null ? jornadaLabel(jornadaNum) : 'Jornada sin identificar';
   const rivalTxt = (j && j.rival)
       ? `${escapeHtml(j.rival)} · ${j.campo === 'visitante' ? 'Visitante' : 'Local'}`
       : '';
@@ -1036,7 +1018,7 @@ function updatePipelineResultsPanel(show){
   if(show){
     const n = analyzedJornadaNum();
     document.getElementById('pipeline-results-title').textContent =
-        n !== null ? `Resultados de la Jornada ${n} listos` : 'Resultados listos';
+        n !== null ? `Resultados de ${deLaJornada(n, true)} listos` : 'Resultados listos';
     if(!wasVisible) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 }
@@ -1657,7 +1639,7 @@ function getDetectionKey(filename){
 
 function formatDetectionTitle(key){
   const m = key.match(/^jornada\s*(\d+)[_\s]*gol\s*(\d+)$/i);
-  if(m) return `Jornada ${m[1]} — Gol ${m[2]}`;
+  if(m) return `${jornadaLabel(parseInt(m[1], 10))} — Gol ${m[2]}`;
   return key.replace(/_/g, ' ');
 }
 
@@ -2001,7 +1983,7 @@ function renderDetectionCard(group){
   const jornadaNum = extractJornada(primaryFile);
   const goalInfo = extractGoalInfo(primaryFile);
   const detectionTitle = (jornadaNum && goalInfo)
-      ? `Jornada ${jornadaNum} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`
+      ? `${jornadaLabel(jornadaNum)} | Gol ${goalInfo.gol}${goalInfo.player ? ' ' + goalInfo.player : ''}`
       : formatDetectionTitle(group.key);
 
   box.innerHTML = `
@@ -2203,14 +2185,8 @@ async function selectPlayer(playerName, number, position, cardElement, searchNam
    ============================================================ */
 function populatePlayerJornadaFilter(){
   const sel = document.getElementById('player-jornada-filter');
-  if (!sel || sel.dataset.populated) return;
-  for (let i = 1; i <= 38; i++) {
-    const opt = document.createElement('option');
-    opt.value = String(i);
-    opt.textContent = `Jornada ${i}`;
-    sel.appendChild(opt);
-  }
-  sel.dataset.populated = "true";
+  if(!sel || sel.dataset.populated) return;
+  fillJornadaSelect(sel);
 }
 
 function showPlayerReportFilterBar(){
@@ -2295,6 +2271,116 @@ function clearLogs() {
    ============================================================ */
 let JORNADAS_DATA = [];  // se carga desde /api/jornadas (SQLite)
 
+/* ============================================================
+   COMPETICIONES: Liga (jornadas 1-38) y Copa del Rey (partidos 101+)
+   Si el servidor aún no devuelve el campo "competicion", se deduce
+   del número: todo lo que sea > 100 es Copa.
+   ============================================================ */
+const COPA_NUM_BASE = 100;
+
+function isCopa(j){
+  if(!j) return false;
+  if(j.competicion) return String(j.competicion).toLowerCase() === 'copa';
+  return Number(j.numero) > COPA_NUM_BASE;
+}
+
+function isCopaNum(n){
+  const j = JORNADAS_DATA.find(x => x.numero === Number(n));
+  return j ? isCopa(j) : Number(n) > COPA_NUM_BASE;
+}
+
+function copaRonda(n){
+  const j = JORNADAS_DATA.find(x => x.numero === Number(n));
+  return (j && j.ronda) ? j.ronda : `Eliminatoria ${Number(n) - COPA_NUM_BASE}`;
+}
+
+// "Jornada 7"  /  "Copa del Rey · Dieciseisavos"
+function jornadaLabel(n){
+  n = Number(n);
+  return isCopaNum(n) ? `Copa del Rey · ${copaRonda(n)}` : `Jornada ${n}`;
+}
+
+// "la jornada 7"  /  "la Copa del Rey · Dieciseisavos"  (para frases)
+function deLaJornada(n, capital){
+  n = Number(n);
+  if(isCopaNum(n)) return `la ${jornadaLabel(n)}`;
+  return `la ${capital ? 'Jornada' : 'jornada'} ${n}`;
+}
+
+function paraJornada(n){ return ` para ${deLaJornada(n)}`; }
+
+function numOrNull(v){
+  return (v === null || v === undefined || v === '') ? null : Number(v);
+}
+
+function penaltyPair(j){
+  const a = numOrNull(j.penaltis_jaen), b = numOrNull(j.penaltis_rival);
+  return (a !== null && b !== null) ? [a, b] : null;
+}
+
+// " (4-3 pen.)" o ""  — siempre en orden Jaén-rival
+function penSuffix(j){
+  const p = penaltyPair(j);
+  return p ? ` (${p[0]}-${p[1]} pen.)` : '';
+}
+
+// Clave ordenable (YYYYMMDD) de la fecha de un partido. Acepta ISO
+// (2026-10-28), dd/mm/yyyy, dd-mm-yyyy y objetos Date/ISO con hora.
+function fechaKey(j){
+  const f = j && j.fecha ? String(j.fecha).trim() : '';
+  let m = f.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
+  m = f.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
+  if(m) return Number(m[3]) * 10000 + Number(m[2]) * 100 + Number(m[1]);
+  return 99991231;
+}
+
+// Calendario: todos los partidos (liga y Copa) ordenados por fecha.
+// Si coinciden o no tienen fecha, se desempata por número.
+function calendarioOrdenado(list){
+  return [...list].sort((a, b) =>
+      fechaKey(a) - fechaKey(b) || Number(a.numero) - Number(b.numero));
+}
+
+// Rellena un <select> de jornada (el primer hijo es la opción "todas")
+function fillJornadaSelect(sel){
+  if(!sel) return;
+  const prev = sel.value;
+  Array.from(sel.children).slice(1).forEach(c => c.remove());
+
+  const ligaNums = JORNADAS_DATA.filter(j => !isCopa(j)).map(j => j.numero).sort((a, b) => a - b);
+  const copaNums = JORNADAS_DATA.filter(isCopa).map(j => j.numero).sort((a, b) => a - b);
+  const ligaList = ligaNums.length ? ligaNums : Array.from({ length: 38 }, (_, i) => i + 1);
+
+  const mk = (n, text) => {
+    const o = document.createElement('option');
+    o.value = String(n);
+    o.textContent = text;
+    return o;
+  };
+
+  if(copaNums.length){
+    const gLiga = document.createElement('optgroup');
+    gLiga.label = 'Liga';
+    ligaList.forEach(n => gLiga.appendChild(mk(n, `Jornada ${n}`)));
+    const gCopa = document.createElement('optgroup');
+    gCopa.label = 'Copa del Rey';
+    copaNums.forEach(n => gCopa.appendChild(mk(n, jornadaLabel(n))));
+    sel.appendChild(gLiga);
+    sel.appendChild(gCopa);
+  } else {
+    ligaList.forEach(n => sel.appendChild(mk(n, `Jornada ${n}`)));
+  }
+
+  if(prev && Array.from(sel.options).some(o => o.value === prev)) sel.value = prev;
+  sel.dataset.populated = "true";
+}
+
+function refreshJornadaSelects(){
+  ['jornada-filter', 'tactical-jornada-filter', 'detection-jornada-filter', 'player-jornada-filter']
+      .forEach(id => fillJornadaSelect(document.getElementById(id)));
+}
+
 /* Carga los datos de temporada desde la base de datos (vía API).
    staticDataReady se resuelve cuando JORNADAS_DATA, JORNADA_STATS y
    DETECTION_EXAMPLES ya están rellenos. */
@@ -2315,6 +2401,7 @@ async function loadStaticData(){
     console.error('No se pudieron cargar los datos de la base de datos', e);
   }
   jornadasCache = JORNADAS_DATA;
+  refreshJornadaSelects();
   renderCarousel();
   updateSidebarQuickStats();
 }
@@ -2400,15 +2487,20 @@ async function loadJornadas(){
 }
 
 function updateSidebarQuickStats(){
-  const jugadas = JORNADAS_DATA.filter(j => j.goles_jaen !== null && j.goles_jaen !== undefined && j.goles_jaen !== '');
-  const jugados = jugadas.length;
-  const proxima = JORNADAS_DATA.find(j => j.goles_jaen === null || j.goles_jaen === undefined || j.goles_jaen === '');
+  const sinJugar = j => j.goles_jaen === null || j.goles_jaen === undefined || j.goles_jaen === '';
+  // Próximo / último partido: calendario completo (liga + copa)
+  const calendario = calendarioOrdenado(JORNADAS_DATA);
+  const jugadas = calendario.filter(j => !sinJugar(j));
+  const proxima = calendario.find(sinJugar);
   const ultima = jugadas.length ? jugadas[jugadas.length - 1] : null;
+  // Progreso de temporada: solo cuentan las 38 jornadas de liga
+  const ligaTodas = JORNADAS_DATA.filter(j => !isCopa(j));
+  const jugados = ligaTodas.filter(j => !sinJugar(j)).length;
 
   const partidosEl = document.getElementById('qs-partidos');
   const jugadoresEl = document.getElementById('qs-jugadores');
 
-  if(partidosEl) partidosEl.textContent = `${jugados} / ${JORNADAS_DATA.length}`;
+  if(partidosEl) partidosEl.textContent = `${jugados} / ${ligaTodas.length}`;
   if(jugadoresEl){
     const total = squadPlayerNamesList().length;
     jugadoresEl.textContent = total > 0 ? total : '—';
@@ -2417,7 +2509,7 @@ function updateSidebarQuickStats(){
   // Barra de progreso de temporada
   const pctEl = document.getElementById('qs-progreso-pct');
   const fillEl = document.getElementById('qs-progreso-fill');
-  const pct = JORNADAS_DATA.length ? Math.round((jugados / JORNADAS_DATA.length) * 100) : 0;
+  const pct = ligaTodas.length ? Math.round((jugados / ligaTodas.length) * 100) : 0;
   if(pctEl) pctEl.textContent = `${pct}%`;
   if(fillEl) fillEl.style.width = `${pct}%`;
 
@@ -2431,7 +2523,7 @@ function updateSidebarQuickStats(){
       const venueEl = document.getElementById('qs-next-venue');
       const fechaEl = document.getElementById('qs-next-fecha');
 
-      rivalEl.textContent = proxima.rival || '—';
+      rivalEl.textContent = (proxima.rival || '—') + (isCopa(proxima) ? ' · Copa' : '');
       fechaEl.textContent = proxima.fecha || '';
       if(venueEl){
         const esLocal = proxima.campo === 'local';
@@ -2460,14 +2552,14 @@ function updateSidebarQuickStats(){
       const resultEl = document.getElementById('qs-last-result');
       const scoreEl = document.getElementById('qs-last-score');
 
-      rivalEl.textContent = ultima.rival || '—';
+      rivalEl.textContent = (ultima.rival || '—') + (isCopa(ultima) ? ' · Copa' : '');
       const st = matchState(ultima);
       if(resultEl){
         resultEl.textContent = st.text;
         resultEl.className = `side-tag ${st.cls}`;
       }
       if(scoreEl){
-        scoreEl.textContent = `${ultima.goles_jaen} - ${ultima.goles_rival}`;
+        scoreEl.textContent = `${ultima.goles_jaen} - ${ultima.goles_rival}${penSuffix(ultima)}`;
       }
       if(crestBox){
         const src = ultima.escudo_rival ? `fotos/${ultima.escudo_rival}` : '';
@@ -2490,7 +2582,24 @@ function matchState(j){
   const gj = Number(j.goles_jaen), gr = Number(j.goles_rival);
   if(gj > gr) return { text: 'Victoria', cls: 'win' };
   if(gj < gr) return { text: 'Derrota', cls: 'loss' };
+  // Empate en el marcador: en Copa se decide en los penaltis
+  const pens = penaltyPair(j);
+  if(pens && pens[0] !== pens[1]){
+    return pens[0] > pens[1] ? { text: 'Victoria', cls: 'win' } : { text: 'Derrota', cls: 'loss' };
+  }
   return { text: 'Empate', cls: 'draw' };
+}
+
+// Texto extra del desenlace ("Prórroga · Penaltis 4 : 3"), orientado local-visitante
+function matchExtraNote(j){
+  const pens = penaltyPair(j);
+  const parts = [];
+  if(pens || Number(j.prorroga) === 1 || j.prorroga === true) parts.push('Prórroga');
+  if(pens){
+    const [l, r] = j.campo === 'visitante' ? [pens[1], pens[0]] : [pens[0], pens[1]];
+    parts.push(`Penaltis ${l} : ${r}`);
+  }
+  return parts.join(' · ');
 }
 
 function initialsOf(name){
@@ -2515,8 +2624,10 @@ function applyJornadasFilters(){
 function clearJornadasFilters(){
   const resultSel = document.getElementById('jornada-result-filter');
   const venueSel = document.getElementById('jornada-venue-filter');
+  const compSel = document.getElementById('jornada-comp-filter');
   if(resultSel) resultSel.value = 'all';
   if(venueSel) venueSel.value = 'all';
+  if(compSel) compSel.value = 'all';
   renderJornadasGrid();
 }
 
@@ -2529,14 +2640,23 @@ function renderJornadasGrid(){
 
   const resultSel = document.getElementById('jornada-result-filter');
   const venueSel = document.getElementById('jornada-venue-filter');
+  const compSel = document.getElementById('jornada-comp-filter');
+  const compWrap = document.getElementById('jornada-comp-filter-wrap');
   const resultValue = resultSel ? resultSel.value : 'all';
   const venueValue = venueSel ? venueSel.value : 'all';
 
-  const filteredJornadas = jornadasCache.filter(j => {
+  // El filtro de competición solo aparece cuando ya hay partidos de Copa
+  const hayCopa = jornadasCache.some(isCopa);
+  if(compWrap) compWrap.style.display = hayCopa ? '' : 'none';
+  if(!hayCopa && compSel) compSel.value = 'all';
+  const compValue = compSel ? compSel.value : 'all';
+
+  const filteredJornadas = calendarioOrdenado(jornadasCache).filter(j => {
     const st = matchState(j);
     const matchesResult = resultValue === 'all' || st.cls === resultValue;
     const matchesVenue = venueValue === 'all' || j.campo === venueValue;
-    return matchesResult && matchesVenue;
+    const matchesComp = compValue === 'all' || (compValue === 'copa') === isCopa(j);
+    return matchesResult && matchesVenue && matchesComp;
   });
 
   if(filteredJornadas.length === 0){
@@ -2554,7 +2674,7 @@ function renderJornadasGrid(){
         : `${jaenCrest}<span class="vs-sep">–</span>${rivalCrest}`;
     return `
         <button class="jornada-card" onclick="openJornada(${j.numero})">
-          <span class="jnum">Jornada ${j.numero}</span>
+          <span class="jnum">${isCopa(j) ? escapeHtml(copaRonda(j.numero)) : `Jornada ${j.numero}`}</span>
           <div class="crest-vs-row">
             ${crestsInOrder}
           </div>
@@ -2591,7 +2711,7 @@ function openJornada(n){
   document.getElementById('jornada-detail-view').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  document.getElementById('jornada-detail-title').textContent = `Jornada ${n}`;
+  document.getElementById('jornada-detail-title').textContent = jornadaLabel(n);
 
   const st = matchState(j);
   const fechaTxt = j.fecha ? j.fecha : 'Sin fecha';
@@ -2611,6 +2731,8 @@ function openJornada(n){
       ? '– : –'
       : `${scoreLeft ?? '–'} : ${scoreRight ?? '–'}`;
 
+  const extraNote = matchExtraNote(j);
+
   document.getElementById('jornada-info-container').innerHTML = `
         <div class="match-header">
           <div class="match-side">
@@ -2620,6 +2742,7 @@ function openJornada(n){
           <div class="match-center">
             <div class="match-score-big">${scoreTxtOriented}</div>
             <div class="match-state-label ${st.cls}">${st.text}</div>
+            ${extraNote ? `<div class="match-extra-note">${escapeHtml(extraNote)}</div>` : ''}
           </div>
           <div class="match-side">
             ${crestHtml(rightCrest, rightAlt, 'crest-lg')}
@@ -2720,7 +2843,7 @@ function closeJornadaDetail(){
 
 async function loadClipsForJornada(n){
   const container = document.getElementById('jornada-clips-container');
-  container.innerHTML = '<div class="placeholder-box">Buscando clips de la jornada…</div>';
+  container.innerHTML = '<div class="placeholder-box">Buscando clips del partido…</div>';
 
   try {
     const res = await fetch(`${API_BASE}/api/jornadas/${n}/clips`);
@@ -2740,14 +2863,14 @@ async function loadClipsForJornada(n){
     });
 
     if(clips.length === 0){
-      container.innerHTML = `<div class="placeholder-box">Clips pendientes de subir al finalizar la jornada.</div>`;
+      container.innerHTML = `<div class="placeholder-box">Clips pendientes de subir al finalizar el partido.</div>`;
       renderJornadasGrid();
       return;
     }
 
     container.innerHTML = `
             <div class="panel-title">
-              Clips de la jornada ${n}
+              Clips de ${deLaJornada(n)}
               <span class="hint">${clips.length} vídeo${clips.length === 1 ? '' : 's'}</span>
             </div>
             <div class="video-grid">

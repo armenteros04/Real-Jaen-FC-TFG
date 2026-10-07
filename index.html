@@ -830,10 +830,19 @@
             <div class="squad-header has-filters">
               <div>
                 <h2>Calendario de jornadas</h2>
-                <p>Filtra por resultado y campo para localizar la jornada que buscas</p>
+                <p>Filtra por competición, resultado y campo para localizar el partido que buscas</p>
               </div>
 
               <div class="squad-header-filters">
+                <div class="header-filter" id="jornada-comp-filter-wrap">
+                  <label for="jornada-comp-filter">Competición</label>
+                  <select id="jornada-comp-filter" onchange="applyJornadasFilters()">
+                    <option value="all">Liga y Copa</option>
+                    <option value="liga">Liga</option>
+                    <option value="copa">Copa del Rey</option>
+                  </select>
+                </div>
+
                 <div class="header-filter">
                   <label for="jornada-result-filter">Resultado</label>
                   <select id="jornada-result-filter" onchange="applyJornadasFilters()">

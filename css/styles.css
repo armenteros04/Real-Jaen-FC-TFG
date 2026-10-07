@@ -1042,7 +1042,7 @@ SQUAD LIST VIEW
 .view-btn:hover{ color: var(--purple); }
 .view-btn.active{ background: var(--surface); color: var(--purple); box-shadow: var(--shadow-sm); }
 
-#position-filter, #jornada-filter, #heatmap-type-filter, #detection-jornada-filter, #tactical-jornada-filter, #jornada-result-filter, #jornada-venue-filter, #player-jornada-filter, #player-report-sort{
+#position-filter, #jornada-filter, #heatmap-type-filter, #detection-jornada-filter, #tactical-jornada-filter, #jornada-result-filter, #jornada-venue-filter, #jornada-comp-filter, #player-jornada-filter, #player-report-sort{
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -1059,7 +1059,7 @@ SQUAD LIST VIEW
   background-position: right 12px center;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-#position-filter:focus, #jornada-filter:focus, #heatmap-type-filter:focus, #detection-jornada-filter:focus, #tactical-jornada-filter:focus, #jornada-result-filter:focus, #jornada-venue-filter:focus, #player-jornada-filter:focus, #player-report-sort:focus{ outline:none; border-color: var(--purple-2); box-shadow: 0 0 0 4px rgba(107,44,145,0.12); }
+#position-filter:focus, #jornada-filter:focus, #heatmap-type-filter:focus, #detection-jornada-filter:focus, #tactical-jornada-filter:focus, #jornada-result-filter:focus, #jornada-venue-filter:focus, #jornada-comp-filter:focus, #player-jornada-filter:focus, #player-report-sort:focus{ outline:none; border-color: var(--purple-2); box-shadow: 0 0 0 4px rgba(107,44,145,0.12); }
 
 .filter-panel{ padding-bottom: 22px; }
 .filter-panel .squad-header{ margin-bottom: 18px; }
@@ -2231,4 +2231,15 @@ JORNADAS DE LIGA (rejilla + ficha de detalle)
   color: var(--ink-muted);
   text-align:center;
   line-height:1.6;
+}
+
+
+/* ---------- Copa del Rey: nota de desenlace (prórroga / penaltis) ---------- */
+.match-extra-note{
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: center;
+  opacity: 0.75;
 }
